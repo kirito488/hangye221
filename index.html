@@ -313,14 +313,14 @@
             width: 100%;
             max-width: 800px;
             margin: 0 auto;
-            height: 300px;
+            height: 350px;
         }
 
         .bar-container {
             display: flex;
             align-items: center;
-            margin-bottom: 15px;
-            height: 40px;
+            margin-bottom: 12px;
+            height: 42px;
         }
 
         .bar-label {
@@ -1694,118 +1694,93 @@
             // 初始化维度分数
             dimensionScores = new Array(6).fill(0);
             
-            // 为不同类型的问题分配权重
-            const questionTypeWeights = {
-                // 基于问题内容的权重
-                '团队角色': 1.1,
-                '压力应对': 1.0,
-                '工作环境': 0.9,
-                '决策方式': 1.1,
-                '能力重要性': 1.0,
-                '任务偏好': 0.9,
-                '挫折应对': 1.1,
-                '工作节奏': 0.9,
-                '工作价值': 1.0,
-                '学习方式': 0.9,
-                '时间安排': 0.8,
-                '观点表达': 1.0,
-                '同事偏好': 0.9,
-                '工作注重': 1.1,
-                '任务开始': 1.0,
-                '职业发展': 1.1,
-                '意见不合': 1.0,
-                '奖励偏好': 0.9,
-                '工作擅长': 1.1,
-                '价值观': 1.1,
-                '知识学习': 0.9,
-                '工作方式': 0.9,
-                '不确定性': 1.0,
-                '成功因素': 1.1,
-                '细节整体': 0.9,
-                '挑战类型': 1.0,
-                '决策处理': 1.1,
-                '职业环境': 1.0,
-                '工作看重': 1.1,
-                '能力范围': 1.0,
-                '领导风格': 1.1,
-                '挫折调整': 1.0,
-                '成果评价': 1.0,
-                '团队合作': 1.1,
-                '决策权衡': 1.1,
-                '学习平衡': 0.9
-            };
+            // 维度权重配置
+            const dimensionWeights = [
+                1.0, // 责任感
+                1.0, // 创新性
+                1.0, // 细致性
+                1.0, // 社交性
+                1.0, // 分析性
+                1.0  // 进取心
+            ];
             
             // 计算各维度分数
             for (let i = 0; i < questions.length; i++) {
                 const selectedOption = answers[i];
                 const question = questions[i];
                 
-                // 为每个选项分配不同的强度值（1-5分）
-                const optionStrength = selectedOption + 1; // 选项0-3对应1-4分
+                // 选项强度值（0-3对应1-4分，强度递增）
+                const optionStrength = selectedOption + 1;
                 
-                // 获取问题类型权重，如果没有匹配则使用默认权重1.0
-                const questionText = question.text;
-                let questionWeight = 1.0;
+                // 获取当前选项对应的维度
+                const dimensionIndex = question.dimensions[selectedOption];
                 
-                // 尝试匹配问题类型
-                for (const [type, weight] of Object.entries(questionTypeWeights)) {
-                    if (questionText.includes(type)) {
-                        questionWeight = weight;
-                        break;
-                    }
+                if (dimensionIndex !== undefined) {
+                    // 基础分数计算
+                    let baseScore = optionStrength * 2;
+                    
+                    // 考虑问题的重要性（基于问题索引，越后面的问题可能越重要）
+                    const questionImportance = 0.8 + (i / questions.length) * 0.4;
+                    
+                    // 考虑维度权重
+                    const dimWeight = dimensionWeights[dimensionIndex];
+                    
+                    // 计算最终得分
+                    const finalScore = baseScore * questionImportance * dimWeight;
+                    
+                    // 添加到对应维度
+                    dimensionScores[dimensionIndex] += finalScore;
                 }
-                
-                // 计算该问题对各个维度的影响
-                // 主维度权重更高
-                const primaryDimensionIndex = question.dimensions[selectedOption];
-                if (primaryDimensionIndex !== undefined) {
-                    // 主维度获得更高分数，同时考虑问题权重
-                    dimensionScores[primaryDimensionIndex] += optionStrength * 1.5 * questionWeight;
-                }
-                
-                // 考虑次要维度的影响（如果有）
-                // 基于问题的其他选项，为相关维度分配较低的分数
-                const allDimensions = [...new Set(question.dimensions)];
-                allDimensions.forEach(dimIndex => {
-                    if (dimIndex !== primaryDimensionIndex) {
-                        // 次要维度获得较低分数，同时考虑问题权重
-                        dimensionScores[dimIndex] += optionStrength * 0.5 * questionWeight;
-                    }
-                });
             }
             
-            // 归一化分数（0-100），确保每个维度得分不少于15%且整体合理
-            const maxPossibleScore = questions.length * 4 * 1.5 * 1.1; // 每题最高4分 * 1.5权重 * 最高问题权重1.1
+            // 归一化分数（0-100）
+            const maxPossibleScore = questions.length * 4 * 2 * 1.2 * 1.0;
             dimensionScores = dimensionScores.map(score => {
                 const percentage = Math.round((score / maxPossibleScore) * 100);
-                // 确保得分不少于15%，且不超过90%
-                return Math.max(15, Math.min(90, percentage));
+                // 确保每个维度得分在20%-90%之间
+                return Math.max(20, Math.min(90, percentage));
             });
             
-            // 对分数进行微调，确保各维度之间有合理的差异
-            const minScore = Math.min(...dimensionScores);
-            const maxScore = Math.max(...dimensionScores);
-            const scoreRange = maxScore - minScore;
+            // 优化分数分布
+            const avgScore = dimensionScores.reduce((sum, score) => sum + score, 0) / dimensionScores.length;
             
-            // 如果分数范围太小（小于35），则扩大分数范围
-            if (scoreRange < 35) {
-                const avgScore = dimensionScores.reduce((sum, score) => sum + score, 0) / dimensionScores.length;
-                dimensionScores = dimensionScores.map(score => {
-                    // 计算与平均分的差异，扩大1.8倍，使分数差异更明显
-                    const diff = (score - avgScore) * 1.8;
-                    const newScore = avgScore + diff;
-                    // 确保分数在合理范围内
-                    return Math.max(15, Math.min(90, Math.round(newScore)));
-                });
+            // 调整分数，使分布更加合理
+            dimensionScores = dimensionScores.map(score => {
+                // 计算与平均分的差异
+                const diff = score - avgScore;
+                // 放大差异，使性格特点更加明显
+                const adjustedDiff = diff * 2.0;
+                // 计算调整后的分数
+                let adjustedScore = avgScore + adjustedDiff;
+                // 确保分数在合理范围内
+                return Math.max(20, Math.min(90, Math.round(adjustedScore)));
+            });
+            
+            // 确保至少有一个维度得分较高（体现用户优势）
+            const highestScore = Math.max(...dimensionScores);
+            if (highestScore < 75) {
+                // 找到当前最高分的维度
+                const highestIndex = dimensionScores.indexOf(highestScore);
+                // 将其提升到80%
+                dimensionScores[highestIndex] = 80;
             }
             
-            // 确保最高分数至少为70%，体现用户的优势
-            const currentMaxScore = Math.max(...dimensionScores);
-            if (currentMaxScore < 70) {
-                // 找到得分最高的维度
-                const maxIndex = dimensionScores.indexOf(currentMaxScore);
-                // 将最高分数提升到75%
-                dimensionScores[maxIndex] = 75;
+            // 确保分数分布有层次感
+            const sortedScores = [...dimensionScores].sort((a, b) => b - a);
+            const scoreGap = sortedScores[0] - sortedScores[sortedScores.length - 1];
+            
+            // 如果分数差距太小，进一步调整
+            if (scoreGap < 40) {
+                const minScore = sortedScores[sortedScores.length - 1];
+                const maxScore = sortedScores[0];
+                
+                // 重新分配分数，确保差距至少为45
+                dimensionScores = dimensionScores.map(score => {
+                    // 线性映射到新的分数范围
+                    const ratio = (score - minScore) / (maxScore - minScore);
+                    const newScore = 25 + ratio * 60; // 25-85范围
+                    return Math.round(newScore);
+                });
             }
         }
 
@@ -1901,13 +1876,13 @@
             // 绘制维度标签和分数
             for (let i = 0; i < 6; i++) {
                 const angle = (Math.PI / 3) * i;
-                // 根据容器大小动态调整标签距离，进一步增大距离确保标签完整显示
-                const labelDistance = containerWidth < 400 ? radius + 50 : radius + 60;
+                // 大幅增大标签距离，确保标签完全不遮挡
+                const labelDistance = containerWidth < 400 ? radius + 60 : radius + 70;
                 const labelX = centerX + labelDistance * Math.cos(angle);
                 const labelY = centerY + labelDistance * Math.sin(angle);
                 
-                // 根据容器大小动态调整字体大小
-                const fontSize = containerWidth < 400 ? 12 : 14;
+                // 进一步减小字体大小，确保标签完整显示
+                const fontSize = containerWidth < 400 ? 11 : 13;
                 ctx.fillStyle = '#2c3e50';
                 ctx.font = fontSize + 'px Microsoft YaHei';
                 ctx.textAlign = 'center';
