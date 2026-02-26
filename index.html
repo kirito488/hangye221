@@ -589,8 +589,9 @@
             }
 
             .hexagon-chart {
-                width: 400px;
-                height: 400px;
+                width: 350px;
+                height: 350px;
+                margin: 0 auto;
             }
 
             /* 条形图 */
@@ -661,140 +662,183 @@
         }
 
         @media (max-width: 480px) {
+            body {
+                padding: 10px 5px;
+                overflow-x: hidden;
+            }
+
+            .container {
+                padding: 15px 10px;
+                width: 100%;
+                max-width: 100%;
+            }
+
             .title {
-                font-size: 1.8rem;
+                font-size: 1.5rem;
+                letter-spacing: 1px;
             }
 
             .subtitle {
-                font-size: 0.9rem;
+                font-size: 0.85rem;
                 margin-bottom: 30px;
+                line-height: 1.5;
             }
 
             .quiz-container, .result-container {
-                padding: 20px 15px;
+                padding: 15px 10px;
+                width: 100%;
+                max-width: 100%;
             }
 
             .question-text {
                 font-size: 1.1rem;
-                margin-bottom: 25px;
+                margin-bottom: 20px;
             }
 
             .option {
-                padding: 15px 15px;
-                font-size: 0.95rem;
-                min-height: 50px;
+                padding: 12px 15px;
+                font-size: 0.9rem;
+                min-height: 45px;
             }
 
             .option-letter {
-                width: 32px;
-                height: 32px;
-                line-height: 32px;
-                margin-right: 12px;
+                width: 30px;
+                height: 30px;
+                line-height: 30px;
+                margin-right: 10px;
             }
 
             .result-title {
-                font-size: 1.8rem;
+                font-size: 1.5rem;
+                margin-bottom: 15px;
             }
 
             /* 性格简介区域 */
             .personality-intro {
-                padding: 15px;
-                margin-bottom: 20px;
+                padding: 12px;
+                margin-bottom: 15px;
             }
 
             .intro-title {
-                font-size: 1.1rem;
+                font-size: 1rem;
+                margin-bottom: 10px;
             }
 
             .intro-text {
-                font-size: 0.9rem;
+                font-size: 0.85rem;
+                line-height: 1.5;
             }
 
             /* 图表容器 */
             .charts-container {
-                gap: 20px;
+                gap: 15px;
             }
 
             .chart-item {
-                padding: 15px;
+                padding: 12px;
             }
 
             .chart-title {
-                font-size: 1rem;
+                font-size: 0.9rem;
                 margin-bottom: 10px;
             }
 
             /* 六边形图表 */
             .hexagon-chart {
-                width: 300px;
-                height: 300px;
+                width: 260px;
+                height: 260px;
+                margin: 0 auto;
             }
 
             /* 条形图 */
             .bar-chart {
-                height: 200px;
+                height: 180px;
             }
 
             .bar-container {
-                height: 30px;
-                margin-bottom: 10px;
+                height: 28px;
+                margin-bottom: 8px;
             }
 
             .bar-label {
-                width: 90px;
-                font-size: 0.8rem;
-                margin-right: 10px;
+                width: 80px;
+                font-size: 0.75rem;
+                margin-right: 8px;
             }
 
             .bar {
-                height: 18px;
+                height: 16px;
             }
 
             .bar-value {
-                font-size: 0.7rem;
-                right: 5px;
+                font-size: 0.65rem;
+                right: 3px;
             }
 
             /* 行业推荐 */
             .industry-name {
-                font-size: 1.1rem;
+                font-size: 1rem;
+                margin-bottom: 8px;
             }
 
             .industry-description {
-                font-size: 0.9rem;
+                font-size: 0.85rem;
+                line-height: 1.5;
             }
 
             /* 免责声明 */
             .disclaimer {
-                margin: 15px 0;
-                padding: 12px;
+                margin: 12px 0;
+                padding: 10px;
             }
 
             .disclaimer p {
-                font-size: 0.8rem;
+                font-size: 0.75rem;
+                line-height: 1.4;
             }
 
             /* 按钮 */
+            .start-btn {
+                padding: 12px 30px;
+                font-size: 1rem;
+            }
+
             .nav-btn {
-                padding: 10px 20px;
-                font-size: 0.9rem;
+                padding: 8px 15px;
+                font-size: 0.85rem;
             }
 
             .toast {
-                padding: 20px 25px;
-                font-size: 1rem;
-                width: 90%;
-                max-width: 300px;
+                padding: 15px 20px;
+                font-size: 0.9rem;
+                width: 95%;
+                max-width: 280px;
             }
 
             .toast-close {
-                padding: 6px 20px;
-                font-size: 0.9rem;
+                padding: 5px 15px;
+                font-size: 0.85rem;
             }
 
             .next-page-btn {
-                padding: 10px 30px;
-                font-size: 1rem;
+                padding: 8px 25px;
+                font-size: 0.9rem;
+            }
+
+            /* 进度条 */
+            .progress-bar {
+                margin-bottom: 20px;
+            }
+
+            /* 导航按钮容器 */
+            .nav-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .nav-buttons button {
+                width: 100%;
+                text-align: center;
             }
         }
     </style>
@@ -1759,11 +1803,15 @@
             // 绘制维度标签和分数
             for (let i = 0; i < 6; i++) {
                 const angle = (Math.PI / 3) * i;
-                const labelX = centerX + (radius + 50) * Math.cos(angle); // 进一步增大标签距离
-                const labelY = centerY + (radius + 50) * Math.sin(angle);
+                // 根据容器大小动态调整标签距离
+                const labelDistance = containerWidth < 400 ? radius + 40 : radius + 50;
+                const labelX = centerX + labelDistance * Math.cos(angle);
+                const labelY = centerY + labelDistance * Math.sin(angle);
                 
+                // 根据容器大小动态调整字体大小
+                const fontSize = containerWidth < 400 ? 14 : 16;
                 ctx.fillStyle = '#2c3e50';
-                ctx.font = '16px Microsoft YaHei'; // 增大字体
+                ctx.font = fontSize + 'px Microsoft YaHei';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(dimensions[i], labelX, labelY);
