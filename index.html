@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>行业选择测评</title>
+    <title>行业工作选择测评</title>
     <style>
         * {
             margin: 0;
@@ -1694,6 +1694,47 @@
             // 初始化维度分数
             dimensionScores = new Array(6).fill(0);
             
+            // 为不同类型的问题分配权重
+            const questionTypeWeights = {
+                // 基于问题内容的权重
+                '团队角色': 1.1,
+                '压力应对': 1.0,
+                '工作环境': 0.9,
+                '决策方式': 1.1,
+                '能力重要性': 1.0,
+                '任务偏好': 0.9,
+                '挫折应对': 1.1,
+                '工作节奏': 0.9,
+                '工作价值': 1.0,
+                '学习方式': 0.9,
+                '时间安排': 0.8,
+                '观点表达': 1.0,
+                '同事偏好': 0.9,
+                '工作注重': 1.1,
+                '任务开始': 1.0,
+                '职业发展': 1.1,
+                '意见不合': 1.0,
+                '奖励偏好': 0.9,
+                '工作擅长': 1.1,
+                '价值观': 1.1,
+                '知识学习': 0.9,
+                '工作方式': 0.9,
+                '不确定性': 1.0,
+                '成功因素': 1.1,
+                '细节整体': 0.9,
+                '挑战类型': 1.0,
+                '决策处理': 1.1,
+                '职业环境': 1.0,
+                '工作看重': 1.1,
+                '能力范围': 1.0,
+                '领导风格': 1.1,
+                '挫折调整': 1.0,
+                '成果评价': 1.0,
+                '团队合作': 1.1,
+                '决策权衡': 1.1,
+                '学习平衡': 0.9
+            };
+            
             // 计算各维度分数
             for (let i = 0; i < questions.length; i++) {
                 const selectedOption = answers[i];
@@ -1702,12 +1743,24 @@
                 // 为每个选项分配不同的强度值（1-5分）
                 const optionStrength = selectedOption + 1; // 选项0-3对应1-4分
                 
+                // 获取问题类型权重，如果没有匹配则使用默认权重1.0
+                const questionText = question.text;
+                let questionWeight = 1.0;
+                
+                // 尝试匹配问题类型
+                for (const [type, weight] of Object.entries(questionTypeWeights)) {
+                    if (questionText.includes(type)) {
+                        questionWeight = weight;
+                        break;
+                    }
+                }
+                
                 // 计算该问题对各个维度的影响
                 // 主维度权重更高
                 const primaryDimensionIndex = question.dimensions[selectedOption];
                 if (primaryDimensionIndex !== undefined) {
-                    // 主维度获得更高分数
-                    dimensionScores[primaryDimensionIndex] += optionStrength * 1.5;
+                    // 主维度获得更高分数，同时考虑问题权重
+                    dimensionScores[primaryDimensionIndex] += optionStrength * 1.5 * questionWeight;
                 }
                 
                 // 考虑次要维度的影响（如果有）
@@ -1715,18 +1768,18 @@
                 const allDimensions = [...new Set(question.dimensions)];
                 allDimensions.forEach(dimIndex => {
                     if (dimIndex !== primaryDimensionIndex) {
-                        // 次要维度获得较低分数
-                        dimensionScores[dimIndex] += optionStrength * 0.5;
+                        // 次要维度获得较低分数，同时考虑问题权重
+                        dimensionScores[dimIndex] += optionStrength * 0.5 * questionWeight;
                     }
                 });
             }
             
-            // 归一化分数（0-100），确保每个维度得分不少于10%且整体合理
-            const maxPossibleScore = questions.length * 4 * 1.5; // 每题最高4分 * 1.5权重
+            // 归一化分数（0-100），确保每个维度得分不少于15%且整体合理
+            const maxPossibleScore = questions.length * 4 * 1.5 * 1.1; // 每题最高4分 * 1.5权重 * 最高问题权重1.1
             dimensionScores = dimensionScores.map(score => {
                 const percentage = Math.round((score / maxPossibleScore) * 100);
-                // 确保得分不少于10%，且不超过95%
-                return Math.max(10, Math.min(95, percentage));
+                // 确保得分不少于15%，且不超过90%
+                return Math.max(15, Math.min(90, percentage));
             });
             
             // 对分数进行微调，确保各维度之间有合理的差异
@@ -1734,16 +1787,25 @@
             const maxScore = Math.max(...dimensionScores);
             const scoreRange = maxScore - minScore;
             
-            // 如果分数范围太小（小于30），则扩大分数范围
-            if (scoreRange < 30) {
+            // 如果分数范围太小（小于35），则扩大分数范围
+            if (scoreRange < 35) {
                 const avgScore = dimensionScores.reduce((sum, score) => sum + score, 0) / dimensionScores.length;
                 dimensionScores = dimensionScores.map(score => {
-                    // 计算与平均分的差异，扩大1.5倍
-                    const diff = (score - avgScore) * 1.5;
+                    // 计算与平均分的差异，扩大1.8倍，使分数差异更明显
+                    const diff = (score - avgScore) * 1.8;
                     const newScore = avgScore + diff;
                     // 确保分数在合理范围内
-                    return Math.max(10, Math.min(95, Math.round(newScore)));
+                    return Math.max(15, Math.min(90, Math.round(newScore)));
                 });
+            }
+            
+            // 确保最高分数至少为70%，体现用户的优势
+            const currentMaxScore = Math.max(...dimensionScores);
+            if (currentMaxScore < 70) {
+                // 找到得分最高的维度
+                const maxIndex = dimensionScores.indexOf(currentMaxScore);
+                // 将最高分数提升到75%
+                dimensionScores[maxIndex] = 75;
             }
         }
 
@@ -1839,13 +1901,13 @@
             // 绘制维度标签和分数
             for (let i = 0; i < 6; i++) {
                 const angle = (Math.PI / 3) * i;
-                // 根据容器大小动态调整标签距离
-                const labelDistance = containerWidth < 400 ? radius + 40 : radius + 50;
+                // 根据容器大小动态调整标签距离，进一步增大距离确保标签完整显示
+                const labelDistance = containerWidth < 400 ? radius + 50 : radius + 60;
                 const labelX = centerX + labelDistance * Math.cos(angle);
                 const labelY = centerY + labelDistance * Math.sin(angle);
                 
                 // 根据容器大小动态调整字体大小
-                const fontSize = containerWidth < 400 ? 14 : 16;
+                const fontSize = containerWidth < 400 ? 12 : 14;
                 ctx.fillStyle = '#2c3e50';
                 ctx.font = fontSize + 'px Microsoft YaHei';
                 ctx.textAlign = 'center';
@@ -1918,10 +1980,25 @@
             const industryMatches = [];
             for (const [industryName, industryData] of Object.entries(industries)) {
                 let matchScore = 0;
-                for (const dimensionIndex of industryData.suitableDimensions) {
-                    matchScore += dimensionScores[dimensionIndex];
-                }
-                matchScore = Math.round(matchScore / industryData.suitableDimensions.length);
+                
+                // 为每个适合维度分配不同权重
+                // 第一个维度权重最高，后续维度权重递减
+                industryData.suitableDimensions.forEach((dimensionIndex, index) => {
+                    // 权重从1.2开始递减，确保主要维度影响更大
+                    const weight = 1.2 - (index * 0.1);
+                    matchScore += dimensionScores[dimensionIndex] * weight;
+                });
+                
+                // 计算加权平均分
+                const totalWeight = industryData.suitableDimensions.reduce((sum, _, index) => {
+                    return sum + (1.2 - (index * 0.1));
+                }, 0);
+                matchScore = Math.round(matchScore / totalWeight);
+                
+                // 应用调整因子，提高整体匹配度
+                // 确保最低匹配度不低于40%，最高不超过95%
+                matchScore = Math.max(40, Math.min(95, matchScore + 10));
+                
                 industryMatches.push({ name: industryName, score: matchScore, data: industryData });
             }
             
@@ -2052,12 +2129,15 @@
                 barWrapper.style.width = '100%';
                 barWrapper.style.display = 'flex';
                 barWrapper.style.alignItems = 'center';
+                barWrapper.style.maxWidth = '100%';
                 
                 // 添加条形
                 const bar = document.createElement('div');
                 bar.className = 'bar';
-                bar.style.width = score + '%'; // 宽度根据得分设置
+                // 限制最大宽度为100%，避免超出边框
+                bar.style.width = Math.min(score, 100) + '%'; // 宽度根据得分设置，最大100%
                 bar.style.height = '25px';
+                bar.style.maxWidth = '100%';
                 
                 // 添加分数
                 const value = document.createElement('div');
