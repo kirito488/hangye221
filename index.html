@@ -1742,11 +1742,8 @@
                     // 考虑维度权重
                     const dimWeight = dimensionWeights[dimensionIndex];
                     
-                    // 添加随机波动，使分数更加自然
-                    const randomFactor = 0.9 + Math.random() * 0.2; // 0.9-1.1之间的随机值
-                    
-                    // 计算最终得分
-                    const finalScore = optionStrength * typeWeight * questionImportance * dimWeight * 2 * randomFactor;
+                    // 计算最终得分（移除随机因素）
+                    const finalScore = optionStrength * typeWeight * questionImportance * dimWeight * 2;
                     
                     // 添加到对应维度
                     dimensionScores[dimensionIndex] += finalScore;
@@ -1772,44 +1769,23 @@
                 normalizedScores = normalizedScores.map(score => {
                     const zScore = (score - avgScore) / (stdDev || 1);
                     const newZScore = zScore * 1.5;
-                    // 添加小的随机波动
-                    const randomAdjustment = (Math.random() - 0.5) * 3;
-                    const newScore = avgScore + (newZScore * 15) + randomAdjustment;
-                    return Math.max(15, Math.min(95, parseFloat(newScore.toFixed(1))));
-                });
-            } else {
-                // 即使标准差足够，也添加一些小的随机波动，使分数更加自然
-                normalizedScores = normalizedScores.map(score => {
-                    const randomAdjustment = (Math.random() - 0.5) * 2;
-                    const newScore = score + randomAdjustment;
+                    const newScore = avgScore + (newZScore * 15);
                     return Math.max(15, Math.min(95, parseFloat(newScore.toFixed(1))));
                 });
             }
             
-            // 确保至少有两个维度得分较高（体现用户的多重优势），但添加随机性
+            // 确保至少有两个维度得分较高（体现用户的多重优势）
             const sortedIndices = normalizedScores
                 .map((score, index) => ({ score, index }))
                 .sort((a, b) => b.score - a.score);
             
             if (sortedIndices[0].score < 75) {
-                // 添加随机值，使最高分更加自然
-                const randomTopScore = 78 + Math.random() * 7;
-                normalizedScores[sortedIndices[0].index] = parseFloat(randomTopScore.toFixed(1));
+                normalizedScores[sortedIndices[0].index] = 80.0;
             }
             
             if (sortedIndices[1].score < 65) {
-                // 添加随机值，使第二高分更加自然
-                const randomSecondScore = 68 + Math.random() * 5;
-                normalizedScores[sortedIndices[1].index] = parseFloat(randomSecondScore.toFixed(1));
+                normalizedScores[sortedIndices[1].index] = 70.0;
             }
-            
-            // 再次添加微小的随机波动，确保分数不会完全相同
-            normalizedScores = normalizedScores.map((score, index) => {
-                // 为每个分数添加不同的微小随机波动
-                const randomAdjustment = (Math.random() - 0.5) * 1.5;
-                const newScore = score + randomAdjustment;
-                return Math.max(15, Math.min(95, parseFloat(newScore.toFixed(1))));
-            });
             
             // 确保分数分布合理
             dimensionScores = normalizedScores;
