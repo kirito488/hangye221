@@ -1694,30 +1694,55 @@
             // 初始化维度分数
             dimensionScores = new Array(6).fill(0);
             
-            // 维度权重配置
+            // 维度权重配置（基于各维度的重要性）
             const dimensionWeights = [
-                1.0, // 责任感
-                1.0, // 创新性
-                1.0, // 细致性
-                1.0, // 社交性
-                1.0, // 分析性
-                1.0  // 进取心
+                1.1, // 责任感 - 非常重要
+                1.0, // 创新性 - 重要
+                0.9, // 细致性 - 中等重要
+                1.0, // 社交性 - 重要
+                1.0, // 分析性 - 重要
+                1.1  // 进取心 - 非常重要
             ];
+            
+            // 问题类型权重（基于问题的性质）
+            const questionTypeWeights = {
+                '行为偏好': 1.0,
+                '价值观': 1.2,
+                '能力评估': 1.1,
+                '工作环境': 0.9,
+                '团队协作': 1.0,
+                '职业发展': 1.1,
+                '压力应对': 1.0,
+                '决策方式': 1.0
+            };
+            
+            // 为每个问题分类
+            function getQuestionType(questionText) {
+                if (questionText.includes('重要性') || questionText.includes('价值观')) return '价值观';
+                if (questionText.includes('擅长') || questionText.includes('能力')) return '能力评估';
+                if (questionText.includes('团队') || questionText.includes('同事')) return '团队协作';
+                if (questionText.includes('环境') || questionText.includes('喜欢')) return '工作环境';
+                if (questionText.includes('压力') || questionText.includes('挫折')) return '压力应对';
+                if (questionText.includes('决策') || questionText.includes('选择')) return '决策方式';
+                if (questionText.includes('发展') || questionText.includes('未来')) return '职业发展';
+                return '行为偏好'; // 默认类型
+            }
             
             // 计算各维度分数
             for (let i = 0; i < questions.length; i++) {
                 const selectedOption = answers[i];
                 const question = questions[i];
                 
-                // 选项强度值（0-3对应1-4分，强度递增）
-                const optionStrength = selectedOption + 1;
+                // 选项强度值（0-3对应不同强度，3最强）
+                const optionStrength = [1.0, 1.5, 2.0, 2.5][selectedOption];
                 
                 // 获取当前选项对应的维度
                 const dimensionIndex = question.dimensions[selectedOption];
                 
                 if (dimensionIndex !== undefined) {
-                    // 基础分数计算
-                    let baseScore = optionStrength * 2;
+                    // 获取问题类型
+                    const questionType = getQuestionType(question.text);
+                    const typeWeight = questionTypeWeights[questionType] || 1.0;
                     
                     // 考虑问题的重要性（基于问题索引，越后面的问题可能越重要）
                     const questionImportance = 0.8 + (i / questions.length) * 0.4;
@@ -1726,7 +1751,7 @@
                     const dimWeight = dimensionWeights[dimensionIndex];
                     
                     // 计算最终得分
-                    const finalScore = baseScore * questionImportance * dimWeight;
+                    const finalScore = optionStrength * typeWeight * questionImportance * dimWeight * 2;
                     
                     // 添加到对应维度
                     dimensionScores[dimensionIndex] += finalScore;
@@ -1734,54 +1759,43 @@
             }
             
             // 归一化分数（0-100）
-            const maxPossibleScore = questions.length * 4 * 2 * 1.2 * 1.0;
-            dimensionScores = dimensionScores.map(score => {
+            const maxPossibleScore = questions.length * 2.5 * 1.2 * 1.2 * 1.1 * 2;
+            let normalizedScores = dimensionScores.map(score => {
                 const percentage = Math.round((score / maxPossibleScore) * 100);
-                // 确保每个维度得分在20%-90%之间
-                return Math.max(20, Math.min(90, percentage));
+                return Math.max(15, Math.min(95, percentage));
             });
             
-            // 优化分数分布
-            const avgScore = dimensionScores.reduce((sum, score) => sum + score, 0) / dimensionScores.length;
+            // 智能调整分数分布
+            const avgScore = normalizedScores.reduce((sum, score) => sum + score, 0) / normalizedScores.length;
+            const stdDev = Math.sqrt(
+                normalizedScores.reduce((sum, score) => sum + Math.pow(score - avgScore, 2), 0) / normalizedScores.length
+            );
             
-            // 调整分数，使分布更加合理
-            dimensionScores = dimensionScores.map(score => {
-                // 计算与平均分的差异
-                const diff = score - avgScore;
-                // 放大差异，使性格特点更加明显
-                const adjustedDiff = diff * 2.0;
-                // 计算调整后的分数
-                let adjustedScore = avgScore + adjustedDiff;
-                // 确保分数在合理范围内
-                return Math.max(20, Math.min(90, Math.round(adjustedScore)));
-            });
-            
-            // 确保至少有一个维度得分较高（体现用户优势）
-            const highestScore = Math.max(...dimensionScores);
-            if (highestScore < 75) {
-                // 找到当前最高分的维度
-                const highestIndex = dimensionScores.indexOf(highestScore);
-                // 将其提升到80%
-                dimensionScores[highestIndex] = 80;
-            }
-            
-            // 确保分数分布有层次感
-            const sortedScores = [...dimensionScores].sort((a, b) => b - a);
-            const scoreGap = sortedScores[0] - sortedScores[sortedScores.length - 1];
-            
-            // 如果分数差距太小，进一步调整
-            if (scoreGap < 40) {
-                const minScore = sortedScores[sortedScores.length - 1];
-                const maxScore = sortedScores[0];
-                
-                // 重新分配分数，确保差距至少为45
-                dimensionScores = dimensionScores.map(score => {
-                    // 线性映射到新的分数范围
-                    const ratio = (score - minScore) / (maxScore - minScore);
-                    const newScore = 25 + ratio * 60; // 25-85范围
-                    return Math.round(newScore);
+            // 如果标准差太小，增加分数差异
+            if (stdDev < 15) {
+                normalizedScores = normalizedScores.map(score => {
+                    const zScore = (score - avgScore) / (stdDev || 1);
+                    const newZScore = zScore * 1.5;
+                    const newScore = avgScore + (newZScore * 15);
+                    return Math.max(15, Math.min(95, Math.round(newScore)));
                 });
             }
+            
+            // 确保至少有两个维度得分较高（体现用户的多重优势）
+            const sortedIndices = normalizedScores
+                .map((score, index) => ({ score, index }))
+                .sort((a, b) => b.score - a.score);
+            
+            if (sortedIndices[0].score < 75) {
+                normalizedScores[sortedIndices[0].index] = 80;
+            }
+            
+            if (sortedIndices[1].score < 65) {
+                normalizedScores[sortedIndices[1].index] = 70;
+            }
+            
+            // 确保分数分布合理
+            dimensionScores = normalizedScores;
         }
 
         function showResultPage1() {
@@ -1876,13 +1890,13 @@
             // 绘制维度标签和分数
             for (let i = 0; i < 6; i++) {
                 const angle = (Math.PI / 3) * i;
-                // 大幅增大标签距离，确保标签完全不遮挡
-                const labelDistance = containerWidth < 400 ? radius + 60 : radius + 70;
+                // 适当调整标签距离，确保标签显示
+                const labelDistance = containerWidth < 400 ? radius + 40 : radius + 50;
                 const labelX = centerX + labelDistance * Math.cos(angle);
                 const labelY = centerY + labelDistance * Math.sin(angle);
                 
-                // 进一步减小字体大小，确保标签完整显示
-                const fontSize = containerWidth < 400 ? 11 : 13;
+                // 使用合适的字体大小
+                const fontSize = containerWidth < 400 ? 12 : 14;
                 ctx.fillStyle = '#2c3e50';
                 ctx.font = fontSize + 'px Microsoft YaHei';
                 ctx.textAlign = 'center';
@@ -1951,30 +1965,56 @@
             const industryContainer = document.getElementById('industry-result');
             industryContainer.innerHTML = '';
             
-            // 计算每个行业的匹配度
+            // 行业匹配度计算
             const industryMatches = [];
+            
+            // 为每个行业计算匹配度
             for (const [industryName, industryData] of Object.entries(industries)) {
-                let matchScore = 0;
+                // 基础匹配度计算
+                let baseMatchScore = 0;
+                let totalWeight = 0;
                 
-                // 为每个适合维度分配不同权重
-                // 第一个维度权重最高，后续维度权重递减
+                // 计算每个适合维度的贡献
                 industryData.suitableDimensions.forEach((dimensionIndex, index) => {
-                    // 权重从1.2开始递减，确保主要维度影响更大
-                    const weight = 1.2 - (index * 0.1);
-                    matchScore += dimensionScores[dimensionIndex] * weight;
+                    // 维度重要性权重（第一个维度最重要）
+                    const dimensionImportance = 1.3 - (index * 0.2);
+                    const dimensionScore = dimensionScores[dimensionIndex];
+                    
+                    // 计算加权分数
+                    baseMatchScore += dimensionScore * dimensionImportance;
+                    totalWeight += dimensionImportance;
                 });
                 
                 // 计算加权平均分
-                const totalWeight = industryData.suitableDimensions.reduce((sum, _, index) => {
-                    return sum + (1.2 - (index * 0.1));
-                }, 0);
-                matchScore = Math.round(matchScore / totalWeight);
+                let matchScore = totalWeight > 0 ? Math.round(baseMatchScore / totalWeight) : 0;
                 
-                // 应用调整因子，提高整体匹配度
-                // 确保最低匹配度不低于40%，最高不超过95%
-                matchScore = Math.max(40, Math.min(95, matchScore + 10));
+                // 行业调整因子（基于行业的普遍性和适应性）
+                const industryAdjustment = {
+                    '管理咨询': 5,
+                    '金融服务': 3,
+                    '科技和IT': 4,
+                    '创意和设计': 6,
+                    '教育和培训': 3,
+                    '医疗健康': 4,
+                    '市场营销': 5,
+                    '工程技术': 3,
+                    '人力资源': 4,
+                    '创业和自由职业': 7
+                };
                 
-                industryMatches.push({ name: industryName, score: matchScore, data: industryData });
+                // 应用行业调整因子
+                const adjustment = industryAdjustment[industryName] || 0;
+                matchScore = Math.min(95, matchScore + adjustment);
+                
+                // 确保最低匹配度
+                matchScore = Math.max(35, matchScore);
+                
+                // 添加到匹配列表
+                industryMatches.push({ 
+                    name: industryName, 
+                    score: matchScore, 
+                    data: industryData 
+                });
             }
             
             // 按匹配度排序
@@ -2109,10 +2149,11 @@
                 // 添加条形
                 const bar = document.createElement('div');
                 bar.className = 'bar';
-                // 限制最大宽度为100%，避免超出边框
-                bar.style.width = Math.min(score, 100) + '%'; // 宽度根据得分设置，最大100%
+                // 限制最大宽度为95%，确保有足够的边距
+                const barWidth = Math.min(score, 95);
+                bar.style.width = barWidth + '%'; // 宽度根据得分设置，最大95%
                 bar.style.height = '25px';
-                bar.style.maxWidth = '100%';
+                bar.style.maxWidth = '95%'; // 确保条形不会超出容器
                 
                 // 添加分数
                 const value = document.createElement('div');
