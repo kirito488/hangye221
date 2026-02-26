@@ -1587,13 +1587,13 @@
         };
 
         let currentQuestion = 0;
-        let answers = {};
+        let answers = [];
         let dimensionScores = new Array(6).fill(0);
 
         function startSurvey() {
             // 重置测评状态
             currentQuestion = 0;
-            answers = {};
+            answers = new Array(questions.length).fill(undefined);
             dimensionScores = new Array(6).fill(0);
             
             // 显示测评页面
