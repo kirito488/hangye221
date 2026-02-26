@@ -1698,17 +1698,53 @@
             for (let i = 0; i < questions.length; i++) {
                 const selectedOption = answers[i];
                 const question = questions[i];
-                const dimensionIndex = question.dimensions[selectedOption];
-                dimensionScores[dimensionIndex]++;
+                
+                // 为每个选项分配不同的强度值（1-5分）
+                const optionStrength = selectedOption + 1; // 选项0-3对应1-4分
+                
+                // 计算该问题对各个维度的影响
+                // 主维度权重更高
+                const primaryDimensionIndex = question.dimensions[selectedOption];
+                if (primaryDimensionIndex !== undefined) {
+                    // 主维度获得更高分数
+                    dimensionScores[primaryDimensionIndex] += optionStrength * 1.5;
+                }
+                
+                // 考虑次要维度的影响（如果有）
+                // 基于问题的其他选项，为相关维度分配较低的分数
+                const allDimensions = [...new Set(question.dimensions)];
+                allDimensions.forEach(dimIndex => {
+                    if (dimIndex !== primaryDimensionIndex) {
+                        // 次要维度获得较低分数
+                        dimensionScores[dimIndex] += optionStrength * 0.5;
+                    }
+                });
             }
             
-            // 归一化分数（0-100），确保每个维度得分不少于10%且整体偏高
-            const maxScore = questions.length;
+            // 归一化分数（0-100），确保每个维度得分不少于10%且整体合理
+            const maxPossibleScore = questions.length * 4 * 1.5; // 每题最高4分 * 1.5权重
             dimensionScores = dimensionScores.map(score => {
-                const percentage = Math.round((score / maxScore) * 100);
-                // 确保得分不少于10%，且适当提高整体得分
-                return Math.max(10, Math.min(95, percentage + 10));
+                const percentage = Math.round((score / maxPossibleScore) * 100);
+                // 确保得分不少于10%，且不超过95%
+                return Math.max(10, Math.min(95, percentage));
             });
+            
+            // 对分数进行微调，确保各维度之间有合理的差异
+            const minScore = Math.min(...dimensionScores);
+            const maxScore = Math.max(...dimensionScores);
+            const scoreRange = maxScore - minScore;
+            
+            // 如果分数范围太小（小于30），则扩大分数范围
+            if (scoreRange < 30) {
+                const avgScore = dimensionScores.reduce((sum, score) => sum + score, 0) / dimensionScores.length;
+                dimensionScores = dimensionScores.map(score => {
+                    // 计算与平均分的差异，扩大1.5倍
+                    const diff = (score - avgScore) * 1.5;
+                    const newScore = avgScore + diff;
+                    // 确保分数在合理范围内
+                    return Math.max(10, Math.min(95, Math.round(newScore)));
+                });
+            }
         }
 
         function showResultPage1() {
