@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>行业工作选择测评</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+            position: relative;
+            padding: 20px;
+        }
+
+        body.centered {
+            align-items: center;
+        }
+
+        .container {
+            text-align: center;
+            z-index: 10;
+            padding: 40px;
+            width: 100%;
+            max-width: 900px;
+            position: relative;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin-bottom: 60px;
+            line-height: 1.6;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border: none;
+            padding: 18px 60px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3),
+                        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .start-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .start-btn:hover::before {
+            left: 100%;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(52, 152, 219, 0.4),
+                        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+        }
+
+        .start-btn:active {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .quiz-container {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(52, 152, 219, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(52, 152, 219, 0.2);
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .question-number {
+            color: #3498db;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        .question-text {
+            color: #2c3e50;
+            font-size: 1.4rem;
+            margin-bottom: 40px;
+            line-height: 1.6;
+            text-align: left;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .option {
+            background: rgba(245, 247, 250, 0.8);
+            border: 2px solid rgba(52, 152, 219, 0.3);
+            padding: 18px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            color: #2c3e50;
+            font-size: 1.1rem;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .option:hover {
+            background: rgba(52, 152, 219, 0.1);
+            border-color: rgba(52, 152, 219, 0.6);
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            background: rgba(52, 152, 219, 0.2);
+            border-color: #3498db;
+        }
+
+        .option-letter {
+            display: inline-block;
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: #fff;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 36px;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .nav-btn {
+            background: rgba(245, 247, 250, 0.8);
+            border: 2px solid rgba(52, 152, 219, 0.3);
+            padding: 14px 40px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #3498db;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: rgba(52, 152, 219, 0.1);
+            border-color: #3498db;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .nav-btn.primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-color: transparent;
+            color: #fff;
+        }
+
+        .nav-btn.primary:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.4);
+        }
+
+        .result-container {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 50px 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(52, 152, 219, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-title {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .personality-chart {
+            margin-bottom: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .personality-intro {
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.05));
+            border: 2px solid rgba(52, 152, 219, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.1);
+        }
+
+        .intro-title {
+            font-size: 1.4rem;
+            color: #3498db;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .intro-text {
+            color: #2c3e50;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            text-align: justify;
+        }
+
+        .charts-container {
+            display: flex;
+            flex-direction: column;
+            gap: 50px;
+            margin-bottom: 40px;
+        }
+
+        .chart-item {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(52, 152, 219, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .chart-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.15);
+        }
+
+        .chart-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .hexagon-chart {
+            width: 700px;
+            height: 700px;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .bar-chart {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            height: 300px;
+        }
+
+        .bar-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            height: 40px;
+        }
+
+        .bar-label {
+            width: 120px;
+            font-size: 1rem;
+            color: #2c3e50;
+            font-weight: bold;
+            text-align: right;
+            margin-right: 20px;
+        }
+
+        .bar {
+            height: 25px;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
+            animation: barFill 1.5s ease-out;
+            min-width: 20px;
+        }
+
+        @keyframes barFill {
+            from {
+                width: 0;
+            }
+            to {
+                width: 100%;
+            }
+        }
+
+        .bar-value {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .industry-result {
+            margin-bottom: 40px;
+        }
+
+        .industry-title {
+            font-size: 1.8rem;
+            color: #3498db;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .industry-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .industry-item {
+            background: rgba(245, 247, 250, 0.8);
+            border: 1px solid rgba(52, 152, 219, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .industry-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.2);
+        }
+
+        .industry-name {
+            font-size: 1.4rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .industry-description {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .disclaimer {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(243, 156, 18, 0.1);
+            border: 1px solid rgba(243, 156, 18, 0.3);
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .disclaimer p {
+            color: #e67e22;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(44, 62, 80, 0.95);
+            border: 2px solid rgba(52, 152, 219, 0.5);
+            border-radius: 15px;
+            padding: 30px 50px;
+            color: #fff;
+            font-size: 1.2rem;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .toast-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .toast-close {
+            margin-top: 20px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border: none;
+            padding: 10px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .toast-close:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .page-navigation {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .next-page-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border: none;
+            padding: 15px 60px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .next-page-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 10px;
+                overflow-y: auto;
+            }
+
+            .container {
+                padding: 20px 15px;
+            }
+
+            .title {
+                font-size: 2rem;
+                letter-spacing: 2px;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+                margin-bottom: 40px;
+            }
+
+            .start-btn {
+                padding: 14px 40px;
+                font-size: 1.1rem;
+            }
+
+            .quiz-container, .result-container {
+                padding: 25px 20px;
+            }
+
+            .question-text {
+                font-size: 1.2rem;
+                margin-bottom: 30px;
+            }
+
+            .option {
+                padding: 18px 20px;
+                font-size: 1rem;
+                min-height: 60px;
+                display: flex;
+                align-items: center;
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .option-letter {
+                width: 36px;
+                height: 36px;
+                line-height: 36px;
+                margin-right: 15px;
+                flex-shrink: 0;
+            }
+
+            .nav-btn {
+                padding: 12px 25px;
+                font-size: 0.95rem;
+            }
+
+            .result-title {
+                font-size: 2rem;
+            }
+
+            .hexagon-chart {
+                width: 400px;
+                height: 400px;
+            }
+
+            .industry-title {
+                font-size: 1.5rem;
+            }
+
+            .industry-name {
+                font-size: 1.2rem;
+            }
+
+            .industry-description {
+                font-size: 1rem;
+                line-height: 1.7;
+            }
+
+            .toast {
+                padding: 25px 30px;
+                font-size: 1.1rem;
+                width: 85%;
+                max-width: 350px;
+            }
+
+            .toast-close {
+                padding: 8px 25px;
+                font-size: 0.95rem;
+            }
+
+            .next-page-btn {
+                padding: 12px 40px;
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: 1.8rem;
+            }
+
+            .result-title {
+                font-size: 1.8rem;
+            }
+
+            .hexagon-chart {
+                width: 300px;
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="start-screen">
+            <h1 class="title">行业工作选择测评</h1>
+            <p class="subtitle">通过科学的测评，发现最适合你的行业和职业方向<br>探索你的性格特质，找到理想的职业定位</p>
+            <button class="start-btn" onclick="startSurvey()">开始测评</button>
+        </div>
+
+        <div id="quiz-screen" class="quiz-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="question-number" id="question-number"></div>
+            <div class="question-text" id="question-text"></div>
+            <div class="options" id="options"></div>
+            <div class="nav-buttons">
+                <button class="nav-btn" id="prev-btn" onclick="prevQuestion()">上一题</button>
+                <button class="nav-btn primary" id="next-btn" onclick="nextQuestion()">下一题</button>
+            </div>
+        </div>
+
+        <div id="result-screen-1" class="result-container">
+            <h2 class="result-title">性格特质分析</h2>
+            
+            <!-- 性格简介区域 -->
+            <div class="personality-intro" id="personality-intro">
+                <!-- 性格简介将通过JavaScript生成 -->
+            </div>
+            
+            <div class="charts-container">
+                <!-- 六边形图表 -->
+                <div class="chart-item">
+                    <h3 class="chart-title">性格维度分布</h3>
+                    <div class="hexagon-chart" id="hexagon-chart">
+                        <!-- 六边形图表将通过JavaScript生成 -->
+                    </div>
+                </div>
+                
+                <!-- 条形图 -->
+                <div class="chart-item">
+                    <h3 class="chart-title">各维度详细得分</h3>
+                    <div class="bar-chart" id="bar-chart">
+                        <!-- 条形图将通过JavaScript生成 -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page-navigation">
+                <button class="next-page-btn" onclick="showNextResultPage()">查看行业推荐</button>
+            </div>
+        </div>
+
+        <div id="result-screen-2" class="result-container">
+            <h2 class="result-title">行业推荐</h2>
+            <div class="industry-result" id="industry-result">
+                <!-- 行业推荐结果将通过JavaScript生成 -->
+            </div>
+            <div class="disclaimer">
+                <p>测试结果仅作参考，实际职业选择还需结合个人兴趣、能力和具体情况综合考虑。</p>
+            </div>
+            <div class="page-navigation">
+                <button class="next-page-btn" onclick="showPreviousResultPage()">返回上一页</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-overlay" class="toast-overlay" style="display: none;"></div>
+    <div id="toast" class="toast" style="display: none;">
+        <div id="toast-message"></div>
+        <button class="toast-close" onclick="hideToast()">知道了</button>
+    </div>
+
+    <script>
+        // 测评题目
+        const questions = [
+            {
+                text: "在团队中，你更倾向于扮演什么角色？",
+                options: [
+                    "领导者，带领团队完成目标",
+                    "创意者，提供新想法和解决方案",
+                    "执行者，认真完成分配的任务",
+                    "协调者，促进团队成员之间的沟通"
+                ],
+                dimensions: [0, 1, 2, 3] // 对应不同的性格维度
+            },
+            {
+                text: "当面对压力时，你通常会如何应对？",
+                options: [
+                    "制定详细计划，逐步解决问题",
+                    "寻求他人的建议和支持",
+                    "通过运动或其他活动释放压力",
+                    "分析问题根源，寻找最佳解决方案"
+                ],
+                dimensions: [4, 5, 2, 0]
+            },
+            {
+                text: "你更喜欢哪种工作环境？",
+                options: [
+                    "充满活力和变化的环境",
+                    "安静且专注的环境",
+                    "团队合作的环境",
+                    "自主独立的环境"
+                ],
+                dimensions: [1, 4, 3, 5]
+            },
+            {
+                text: "在做决策时，你更依赖什么？",
+                options: [
+                    "逻辑分析和数据",
+                    "直觉和个人感受",
+                    "他人的意见和建议",
+                    "过去的经验"
+                ],
+                dimensions: [4, 1, 3, 0]
+            },
+            {
+                text: "你认为以下哪种能力对你的职业发展最重要？",
+                options: [
+                    "沟通和人际关系能力",
+                    "创新和创造力",
+                    "专业技术能力",
+                    "问题解决能力"
+                ],
+                dimensions: [3, 1, 2, 4]
+            },
+            {
+                text: "你更喜欢哪种类型的任务？",
+                options: [
+                    "需要与他人互动的任务",
+                    "需要创造性思维的任务",
+                    "需要细心和耐心的任务",
+                    "需要分析和解决问题的任务"
+                ],
+                dimensions: [3, 1, 2, 4]
+            },
+            {
+                text: "当工作中出现挫折时，你会如何应对？",
+                options: [
+                    "保持积极态度，寻找解决方案",
+                    "寻求他人的帮助和支持",
+                    "反思问题，调整策略",
+                    "坚持到底，不轻易放弃"
+                ],
+                dimensions: [5, 3, 4, 0]
+            },
+            {
+                text: "当你需要在截止日期前完成多项任务时，你会如何安排？",
+                options: [
+                    "制定详细计划，按优先级执行",
+                    "同时处理多项任务，灵活调整",
+                    "专注于一项任务，完成后再处理下一项",
+                    "寻求帮助，合理分配任务"
+                ],
+                dimensions: [2, 4, 5, 3]
+            },
+            {
+                text: "你认为工作的最大价值是什么？",
+                options: [
+                    "实现个人目标和成就",
+                    "为社会做出贡献",
+                    "获得稳定的收入和保障",
+                    "不断学习和成长"
+                ],
+                dimensions: [5, 3, 2, 4]
+            },
+            {
+                text: "在学习新技能时，你更喜欢哪种方式？",
+                options: [
+                    "通过实践和尝试",
+                    "通过观察和模仿",
+                    "通过阅读和研究",
+                    "通过参加培训课程"
+                ],
+                dimensions: [1, 3, 4, 2]
+            },
+            {
+                text: "你更适合哪种工作时间安排？",
+                options: [
+                    "固定的工作时间",
+                    "灵活的工作时间",
+                    "项目制的工作时间",
+                    "轮班制的工作时间"
+                ],
+                dimensions: [2, 5, 4, 0]
+            },
+            {
+                text: "当需要表达自己的观点时，你会如何做？",
+                options: [
+                    "直接表达，不犹豫",
+                    "考虑他人感受后再表达",
+                    "通过书面形式表达",
+                    "在适当的时机表达"
+                ],
+                dimensions: [5, 3, 2, 4]
+            },
+            {
+                text: "你更喜欢与什么样的人一起工作？",
+                options: [
+                    "积极乐观，充满活力的人",
+                    "冷静理性，分析能力强的人",
+                    "友善合作，乐于助人的人",
+                    "专业认真，责任心强的人"
+                ],
+                dimensions: [1, 4, 3, 0]
+            },
+            {
+                text: "在工作中，你更注重什么？",
+                options: [
+                    "结果和成就",
+                    "过程和体验",
+                    "团队合作和氛围",
+                    "个人成长和发展"
+                ],
+                dimensions: [5, 1, 3, 4]
+            },
+            {
+                text: "当需要完成一项复杂任务时，你会如何开始？",
+                options: [
+                    "制定详细的计划",
+                    "直接开始，边做边调整",
+                    "寻求他人的建议",
+                    "分析任务的各个部分"
+                ],
+                dimensions: [0, 1, 3, 4]
+            },
+            {
+                text: "你更倾向于哪种职业发展路径？",
+                options: [
+                    "管理岗位",
+                    "专业技术岗位",
+                    "创意设计岗位",
+                    "自主创业"
+                ],
+                dimensions: [5, 4, 1, 0]
+            },
+            {
+                text: "当与他人意见不合时，你会如何处理？",
+                options: [
+                    "坚持自己的观点",
+                    "尝试理解对方的观点",
+                    "寻求妥协和共识",
+                    "避免冲突，保持沉默"
+                ],
+                dimensions: [5, 4, 3, 2]
+            },
+            {
+                text: "你更喜欢哪种类型的工作奖励？",
+                options: [
+                    "物质奖励，如奖金和晋升",
+                    "精神奖励，如认可和表扬",
+                    "学习和发展机会",
+                    "工作环境的改善"
+                ],
+                dimensions: [5, 3, 4, 2]
+            },
+            {
+                text: "在工作中，你更擅长什么？",
+                options: [
+                    "领导和管理团队",
+                    "解决复杂问题",
+                    "执行具体任务",
+                    "创意和创新"
+                ],
+                dimensions: [5, 4, 2, 1]
+            },
+            {
+                text: "当你需要对工作成果进行评价时，你更看重什么？",
+                options: [
+                    "目标完成度和业绩表现",
+                    "工作过程中的努力和成长",
+                    "对团队和组织的贡献",
+                    "个人满意度和兴趣实现"
+                ],
+                dimensions: [5, 4, 3, 1]
+            },
+            {
+                text: "当需要学习新领域的知识时，你会如何做？",
+                options: [
+                    "系统学习，从基础开始",
+                    "直接学习实用的部分",
+                    "向专家请教",
+                    "通过实践学习"
+                ],
+                dimensions: [4, 2, 3, 1]
+            },
+            {
+                text: "你更适合哪种工作方式？",
+                options: [
+                    "独立工作",
+                    "团队合作",
+                    "混合工作方式",
+                    "远程工作"
+                ],
+                dimensions: [5, 3, 4, 2]
+            },
+            {
+                text: "当面对不确定性时，你会如何应对？",
+                options: [
+                    "拥抱变化，寻找机会",
+                    "谨慎分析，做好准备",
+                    "寻求他人的支持",
+                    "保持冷静，等待明确"
+                ],
+                dimensions: [1, 4, 3, 0]
+            },
+            {
+                text: "你认为成功的职业应该具备什么？",
+                options: [
+                    "高收入和社会地位",
+                    "个人兴趣和成就感",
+                    "工作与生活的平衡",
+                    "持续学习和成长的机会"
+                ],
+                dimensions: [5, 1, 2, 4]
+            },
+            {
+                text: "在工作中，你更注重细节还是整体？",
+                options: [
+                    "注重细节，追求完美",
+                    "注重整体，把握大局",
+                    "两者兼顾，根据情况调整",
+                    "更注重结果，不拘泥于细节"
+                ],
+                dimensions: [2, 5, 4, 0]
+            },
+            {
+                text: "当你需要在工作中做出重要决策时，你会如何权衡不同因素？",
+                options: [
+                    "注重结果和效率",
+                    "考虑团队和他人的需求",
+                    "分析风险和收益",
+                    "遵循自己的价值观和直觉"
+                ],
+                dimensions: [5, 3, 4, 1]
+            },
+            {
+                text: "当需要做重要决策时，你会如何处理？",
+                options: [
+                    "快速做出决策，相信自己的判断",
+                    "收集充分信息后再决策",
+                    "咨询他人意见后再决策",
+                    "权衡利弊后再决策"
+                ],
+                dimensions: [1, 4, 3, 0]
+            },
+            {
+                text: "你更倾向于哪种职业环境？",
+                options: [
+                    "企业和商业环境",
+                    "学术和研究环境",
+                    "创意和艺术环境",
+                    "公共服务和非营利环境"
+                ],
+                dimensions: [5, 4, 1, 3]
+            },
+            {
+                text: "在工作中，你更看重什么？",
+                options: [
+                    "个人成长和发展",
+                    "工作内容的兴趣",
+                    "工作的稳定性",
+                    "工作的社会价值"
+                ],
+                dimensions: [4, 1, 2, 3]
+            },
+            {
+                text: "当工作任务超出你的能力范围时，你会如何应对？",
+                options: [
+                    "挑战自己，努力学习",
+                    "寻求他人的帮助",
+                    "分解任务，逐步完成",
+                    "调整预期，制定合理计划"
+                ],
+                dimensions: [5, 3, 2, 4]
+            },
+            {
+                text: "你更适合哪种类型的领导风格？",
+                options: [
+                    "民主型，注重团队参与",
+                    "权威型，明确指导方向",
+                    "教练型，注重员工发展",
+                    "放任型，给予充分自由"
+                ],
+                dimensions: [3, 5, 4, 1]
+            },
+            {
+                text: "当你在工作中遇到挫折时，你会如何调整自己的状态？",
+                options: [
+                    "分析失败原因，制定改进计划",
+                    "寻求支持和鼓励，恢复信心",
+                    "短暂休息，调整心态后重新开始",
+                    "反思自身能力，寻找学习机会"
+                ],
+                dimensions: [4, 3, 1, 5]
+            },
+            {
+                text: "你认为职业成功的关键因素是什么？",
+                options: [
+                    "努力工作和毅力",
+                    "人脉和社交能力",
+                    "专业知识和技能",
+                    "机遇和运气"
+                ],
+                dimensions: [0, 3, 4, 1]
+            },
+            {
+                text: "当工作中需要创新时，你会如何做？",
+                options: [
+                    "大胆尝试新想法",
+                    "分析现有方法的不足",
+                    "参考他人的成功经验",
+                    "结合传统与创新"
+                ],
+                dimensions: [1, 4, 3, 0]
+            },
+            {
+                text: "你更适合哪种类型的工作内容？",
+                options: [
+                    "与人打交道的工作",
+                    "与数据和信息打交道的工作",
+                    "与事物和工具打交道的工作",
+                    "与创意和设计打交道的工作"
+                ],
+                dimensions: [3, 4, 2, 1]
+            },
+            {
+                text: "当工作中需要承担责任时，你会如何应对？",
+                options: [
+                    "主动承担，勇于负责",
+                    "谨慎评估，合理承担",
+                    "与他人共同承担",
+                    "根据能力和职责承担"
+                ],
+                dimensions: [5, 4, 3, 0]
+            },
+            {
+                text: "你更倾向于哪种职业发展速度？",
+                options: [
+                    "快速晋升，追求高位",
+                    "稳步发展，注重积累",
+                    "根据兴趣和能力发展",
+                    "灵活调整，适应变化"
+                ],
+                dimensions: [5, 2, 1, 4]
+            },
+            {
+                text: "在工作中，你更注重什么类型的反馈？",
+                options: [
+                    "建设性的批评和建议",
+                    "肯定和表扬",
+                    "具体的指导和支持",
+                    "客观的评价和数据"
+                ],
+                dimensions: [4, 3, 2, 0]
+            },
+            {
+                text: "你更适合哪种工作氛围？",
+                options: [
+                    "充满活力和竞争的氛围",
+                    "和谐合作的氛围",
+                    "专业严谨的氛围",
+                    "轻松自由的氛围"
+                ],
+                dimensions: [5, 3, 4, 1]
+            },
+            {
+                text: "当工作与个人生活发生冲突时，你会如何处理？",
+                options: [
+                    "优先考虑工作",
+                    "优先考虑个人生活",
+                    "尝试平衡两者",
+                    "根据具体情况决定"
+                ],
+                dimensions: [5, 1, 4, 3]
+            },
+            {
+                text: "当你需要在团队中与他人合作时，你更注重什么？",
+                options: [
+                    "明确的分工和责任",
+                    "良好的沟通和协作",
+                    "共同的目标和价值观",
+                    "互补的技能和优势"
+                ],
+                dimensions: [0, 3, 5, 4]
+            },
+            {
+                text: "在工作中，你更擅长处理哪种类型的问题？",
+                options: [
+                    "紧急和突发的问题",
+                    "复杂和长期的问题",
+                    "人际关系相关的问题",
+                    "技术和专业相关的问题"
+                ],
+                dimensions: [0, 4, 3, 2]
+            },
+            {
+                text: "你更适合哪种类型的工作组织？",
+                options: [
+                    "大型企业和机构",
+                    "中小型企业",
+                    "创业公司和 startups",
+                    "非营利组织和政府机构"
+                ],
+                dimensions: [2, 4, 1, 3]
+            },
+            {
+                text: "当工作中需要学习新技能时，你会如何应对？",
+                options: [
+                    "积极主动学习",
+                    "根据需求有针对性地学习",
+                    "通过实践和经验学习",
+                    "参加正式的培训和课程"
+                ],
+                dimensions: [5, 4, 1, 2]
+            },
+            {
+                text: "你更倾向于哪种工作沟通方式？",
+                options: [
+                    "面对面沟通",
+                    "书面和电子邮件沟通",
+                    "电话和视频沟通",
+                    "混合使用多种沟通方式"
+                ],
+                dimensions: [3, 2, 4, 0]
+            },
+            {
+                text: "在工作中，你更注重什么类型的目标？",
+                options: [
+                    "短期和具体的目标",
+                    "长期和战略性的目标",
+                    "个人发展目标",
+                    "团队和组织目标"
+                ],
+                dimensions: [2, 4, 5, 3]
+            },
+            {
+                text: "当工作中需要与不同背景的人合作时，你会如何应对？",
+                options: [
+                    "积极适应，寻找共同点",
+                    "尊重差异，保持开放心态",
+                    "明确分工，协调合作",
+                    "发挥各自优势，互补合作"
+                ],
+                dimensions: [1, 3, 4, 0]
+            },
+            {
+                text: "当你需要在工作中学习新技能时，你会如何平衡理论和实践？",
+                options: [
+                    "先学习理论，再应用到实践中",
+                    "直接从实践中学习，边做边学",
+                    "结合理论和实践，相互验证",
+                    "根据技能类型选择合适的学习方式"
+                ],
+                dimensions: [4, 1, 5, 2]
+            },
+            {
+                text: "在工作中，你更倾向于哪种决策风格？",
+                options: [
+                    "快速决策，灵活调整",
+                    "深思熟虑，谨慎决策",
+                    "集体决策，民主参与",
+                    "基于数据和分析的决策"
+                ],
+                dimensions: [1, 0, 3, 4]
+            },
+            {
+                text: "你更注重工作中的什么？",
+                options: [
+                    "工作的意义和价值",
+                    "工作的挑战性和趣味性",
+                    "工作的稳定性和安全性",
+                    "工作的回报和福利"
+                ],
+                dimensions: [3, 1, 2, 5]
+            },
+            {
+                text: "当工作中需要展示自己的能力时，你会如何做？",
+                options: [
+                    "主动展示，积极表现",
+                    "通过实际成果展示",
+                    "在适当的机会展示",
+                    "低调行事，不刻意展示"
+                ],
+                dimensions: [5, 0, 4, 2]
+            },
+            {
+                text: "你更适合哪种类型的工作时间安排？",
+                options: [
+                    "固定的朝九晚五",
+                    "弹性工作时间",
+                    "项目制的工作时间",
+                    "轮班和倒班"
+                ],
+                dimensions: [2, 1, 4, 0]
+            },
+            {
+                text: "在工作中，你更擅长什么类型的任务？",
+                options: [
+                    "需要领导力和管理能力的任务",
+                    "需要专业知识和技能的任务",
+                    "需要创意和创新能力的任务",
+                    "需要执行力和细节的任务"
+                ],
+                dimensions: [5, 4, 1, 2]
+            },
+            {
+                text: "你更倾向于哪种职业发展路径？",
+                options: [
+                    "在一个领域深耕，成为专家",
+                    "跨领域发展，成为多面手",
+                    "向管理和领导方向发展",
+                    "自主创业或自由职业"
+                ],
+                dimensions: [4, 0, 5, 1]
+            },
+            {
+                text: "当工作中遇到困难时，你会如何应对？",
+                options: [
+                    "勇敢面对，积极解决",
+                    "寻求帮助，共同解决",
+                    "分析问题，寻找根源",
+                    "调整心态，保持耐心"
+                ],
+                dimensions: [5, 3, 4, 2]
+            },
+            {
+                text: "你更适合哪种工作环境？",
+                options: [
+                    "城市和繁华地区",
+                    "郊区和安静地区",
+                    "远程工作，地点灵活",
+                    "根据工作需要调整"
+                ],
+                dimensions: [1, 2, 4, 0]
+            },
+            {
+                text: "在工作中，你更注重什么？",
+                options: [
+                    "工作的质量和标准",
+                    "工作的效率和速度",
+                    "工作的团队合作",
+                    "工作的个人成长"
+                ],
+                dimensions: [4, 5, 3, 1]
+            },
+            {
+                text: "当工作需要你走出舒适区时，你会如何应对？",
+                options: [
+                    "积极尝试，挑战自我",
+                    "谨慎评估，逐步适应",
+                    "寻求支持，共同面对",
+                    "做好准备，从容应对"
+                ],
+                dimensions: [1, 4, 3, 0]
+            },
+            {
+                text: "你更倾向于哪种工作价值观？",
+                options: [
+                    "个人主义，追求个人成就",
+                    "集体主义，注重团队合作",
+                    "实用主义，注重实际效果",
+                    "理想主义，追求更高价值"
+                ],
+                dimensions: [5, 3, 4, 1]
+            },
+            {
+                text: "在工作中，你更擅长处理哪种类型的信息？",
+                options: [
+                    "数字和数据信息",
+                    "文字和语言信息",
+                    "视觉和图像信息",
+                    "抽象和概念信息"
+                ],
+                dimensions: [4, 3, 1, 0]
+            },
+            {
+                text: "你更适合哪种类型的工作关系？",
+                options: [
+                    "竞争和合作并存",
+                    "和谐和支持",
+                    "专业和正式",
+                    "轻松和友好"
+                ],
+                dimensions: [5, 3, 4, 1]
+            },
+            {
+                text: "当工作中需要做出牺牲时，你会如何决定？",
+                options: [
+                    "为了工作目标愿意牺牲",
+                    "权衡利弊，合理牺牲",
+                    "尽量避免牺牲，寻找其他方案",
+                    "根据具体情况决定"
+                ],
+                dimensions: [5, 4, 1, 3]
+            }
+        ];
+
+        // 性格维度定义
+        const dimensions = [
+            "责任感",
+            "创新性",
+            "细致性",
+            "社交性",
+            "分析性",
+            "进取心"
+        ];
+
+        // 行业推荐数据
+        const industries = {
+            "管理咨询": {
+                description: "管理咨询行业专注于为企业提供战略规划、运营优化、组织变革等方面的专业建议。适合具有较强分析能力、沟通能力和问题解决能力的人。",
+                suitableDimensions: [4, 5, 3]
+            },
+            "金融服务": {
+                description: "金融服务行业包括银行、证券、保险等领域，专注于资金的管理和运作。适合具有较强分析能力、责任感和细致性的人。",
+                suitableDimensions: [0, 4, 2]
+            },
+            "科技和IT": {
+                description: "科技和IT行业包括软件开发、数据分析、人工智能等领域，专注于技术创新和应用。适合具有较强创新性、分析能力和细致性的人。",
+                suitableDimensions: [1, 4, 2]
+            },
+            "创意和设计": {
+                description: "创意和设计行业包括广告、平面设计、产品设计等领域，专注于创造性解决方案的开发。适合具有较强创新性、社交性和进取心的人。",
+                suitableDimensions: [1, 3, 5]
+            },
+            "教育和培训": {
+                description: "教育和培训行业专注于知识的传授和技能的培养。适合具有较强社交性、责任感和细致性的人。",
+                suitableDimensions: [3, 0, 2]
+            },
+            "医疗健康": {
+                description: "医疗健康行业包括医生、护士、药剂师等职业，专注于维护和改善人们的健康。适合具有较强责任感、细致性和社交性的人。",
+                suitableDimensions: [0, 2, 3]
+            },
+            "市场营销": {
+                description: "市场营销行业专注于产品和服务的推广和销售。适合具有较强社交性、创新性和进取心的人。",
+                suitableDimensions: [3, 1, 5]
+            },
+            "人力资源": {
+                description: "人力资源行业专注于企业的人才管理和发展。适合具有较强社交性、责任感和细致性的人。",
+                suitableDimensions: [3, 0, 2]
+            },
+            "工程和制造": {
+                description: "工程和制造行业包括机械、电子、建筑等领域，专注于产品的设计和生产。适合具有较强分析能力、细致性和责任感的人。",
+                suitableDimensions: [4, 2, 0]
+            },
+            "媒体和传播": {
+                description: "媒体和传播行业包括新闻、出版、广播等领域，专注于信息的传播和表达。适合具有较强社交性、创新性和进取心的人。",
+                suitableDimensions: [3, 1, 5]
+            }
+        };
+
+        let currentQuestion = 0;
+        let answers = {};
+        let dimensionScores = new Array(6).fill(0);
+
+        function startSurvey() {
+            // 重置测评状态
+            currentQuestion = 0;
+            answers = {};
+            dimensionScores = new Array(6).fill(0);
+            
+            // 显示测评页面
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('quiz-screen').style.display = 'block';
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('question-number').textContent = `第 ${currentQuestion + 1}/${questions.length} 题`;
+            document.getElementById('question-text').textContent = q.text;
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            const letters = ['A', 'B', 'C', 'D'];
+            q.options.forEach((opt, idx) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                if (answers[currentQuestion] === idx) {
+                    optionDiv.classList.add('selected');
+                }
+                optionDiv.innerHTML = `<span class="option-letter">${letters[idx]}</span>${opt}`;
+                optionDiv.onclick = () => selectOption(idx);
+                optionsContainer.appendChild(optionDiv);
+            });
+
+            updateProgress();
+            updateButtons();
+        }
+
+        function selectOption(idx) {
+            answers[currentQuestion] = idx;
+            const options = document.querySelectorAll('.option');
+            options.forEach((opt, i) => {
+                opt.classList.toggle('selected', i === idx);
+            });
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+            }
+        }
+
+        function showToast(message) {
+            document.getElementById('toast-message').textContent = message;
+            document.getElementById('toast-overlay').style.display = 'block';
+            document.getElementById('toast').style.display = 'block';
+        }
+
+        function hideToast() {
+            document.getElementById('toast-overlay').style.display = 'none';
+            document.getElementById('toast').style.display = 'none';
+        }
+
+        function nextQuestion() {
+            if (answers[currentQuestion] === undefined) {
+                showToast('请选择一个选项后再继续！');
+                return;
+            }
+            
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                showQuestion();
+            } else {
+                calculateResults();
+                showResultPage1();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+        }
+
+        function updateButtons() {
+            document.getElementById('prev-btn').disabled = currentQuestion === 0;
+            const nextBtn = document.getElementById('next-btn');
+            if (currentQuestion === questions.length - 1) {
+                nextBtn.textContent = '完成测评';
+            } else {
+                nextBtn.textContent = '下一题';
+            }
+        }
+
+        function calculateResults() {
+            // 初始化维度分数
+            dimensionScores = new Array(6).fill(0);
+            
+            // 计算各维度分数
+            for (let i = 0; i < questions.length; i++) {
+                const selectedOption = answers[i];
+                const question = questions[i];
+                const dimensionIndex = question.dimensions[selectedOption];
+                dimensionScores[dimensionIndex]++;
+            }
+            
+            // 归一化分数（0-100），确保每个维度得分不少于10%且整体偏高
+            const maxScore = questions.length;
+            dimensionScores = dimensionScores.map(score => {
+                const percentage = Math.round((score / maxScore) * 100);
+                // 确保得分不少于10%，且适当提高整体得分
+                return Math.max(10, Math.min(95, percentage + 10));
+            });
+        }
+
+        function showResultPage1() {
+            document.getElementById('quiz-screen').style.display = 'none';
+            document.getElementById('result-screen-1').style.display = 'block';
+            document.getElementById('result-screen-2').style.display = 'none';
+            
+            // 生成性格简介
+            generatePersonalityIntro();
+            
+            // 生成六边形图表
+            generateHexagonChart();
+            
+            // 生成条形图
+            generateBarChart();
+        }
+
+        function showNextResultPage() {
+            document.getElementById('result-screen-1').style.display = 'none';
+            document.getElementById('result-screen-2').style.display = 'block';
+            
+            // 生成行业推荐结果
+            generateIndustryRecommendations();
+        }
+
+        function showPreviousResultPage() {
+            document.getElementById('result-screen-2').style.display = 'none';
+            document.getElementById('result-screen-1').style.display = 'block';
+        }
+
+        function generateHexagonChart() {
+            const chartContainer = document.getElementById('hexagon-chart');
+            chartContainer.innerHTML = '';
+            
+            // 增大图表容器大小，确保有足够空间显示所有标签
+            chartContainer.style.width = '700px';
+            chartContainer.style.height = '700px';
+            
+            // 这里使用简单的方式生成六边形图表
+            // 在实际应用中，可以使用专业的图表库如Chart.js
+            const canvas = document.createElement('canvas');
+            canvas.width = 700;
+            canvas.height = 700;
+            chartContainer.appendChild(canvas);
+            
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(centerX, centerY) * 0.75; // 减小半径，为标签留出更多空间
+            
+            // 绘制背景网格
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = (Math.PI / 3) * i;
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.strokeStyle = 'rgba(52, 152, 219, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            // 绘制同心圆
+            for (let i = 1; i <= 5; i++) {
+                const r = (radius / 5) * i;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(52, 152, 219, 0.15)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+            
+            // 绘制六边形外框
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = (Math.PI / 3) * i;
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.closePath();
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // 绘制维度标签和分数
+            for (let i = 0; i < 6; i++) {
+                const angle = (Math.PI / 3) * i;
+                const labelX = centerX + (radius + 50) * Math.cos(angle); // 进一步增大标签距离
+                const labelY = centerY + (radius + 50) * Math.sin(angle);
+                
+                ctx.fillStyle = '#2c3e50';
+                ctx.font = '16px Microsoft YaHei'; // 增大字体
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(dimensions[i], labelX, labelY);
+                
+                // 绘制分数点
+                const score = dimensionScores[i];
+                const scoreRadius = (radius * score) / 100;
+                const scoreX = centerX + scoreRadius * Math.cos(angle);
+                const scoreY = centerY + scoreRadius * Math.sin(angle);
+                
+                // 绘制分数点外圈
+                ctx.beginPath();
+                ctx.arc(scoreX, scoreY, 12, 0, Math.PI * 2); // 增大分数点大小
+                ctx.fillStyle = 'rgba(52, 152, 219, 0.2)';
+                ctx.fill();
+                ctx.strokeStyle = '#3498db';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 绘制分数点内圈
+                ctx.beginPath();
+                ctx.arc(scoreX, scoreY, 8, 0, Math.PI * 2);
+                ctx.fillStyle = '#3498db';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 绘制分数值
+                ctx.fillStyle = '#fff';
+                ctx.font = '12px Microsoft YaHei';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(score, scoreX, scoreY);
+            }
+            
+            // 绘制连接线
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const score = dimensionScores[i];
+                const scoreRadius = (radius * score) / 100;
+                const angle = (Math.PI / 3) * i;
+                const x = centerX + scoreRadius * Math.cos(angle);
+                const y = centerY + scoreRadius * Math.sin(angle);
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.closePath();
+            // 使用渐变填充
+            const gradient = ctx.createLinearGradient(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
+            gradient.addColorStop(0, 'rgba(52, 152, 219, 0.3)');
+            gradient.addColorStop(1, 'rgba(52, 152, 219, 0.1)');
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function generateIndustryRecommendations() {
+            const industryContainer = document.getElementById('industry-result');
+            industryContainer.innerHTML = '';
+            
+            // 计算每个行业的匹配度
+            const industryMatches = [];
+            for (const [industryName, industryData] of Object.entries(industries)) {
+                let matchScore = 0;
+                for (const dimensionIndex of industryData.suitableDimensions) {
+                    matchScore += dimensionScores[dimensionIndex];
+                }
+                matchScore = Math.round(matchScore / industryData.suitableDimensions.length);
+                industryMatches.push({ name: industryName, score: matchScore, data: industryData });
+            }
+            
+            // 按匹配度排序
+            industryMatches.sort((a, b) => b.score - a.score);
+            
+            // 显示前5个推荐行业
+            const topIndustries = industryMatches.slice(0, 5);
+            const industryList = document.createElement('div');
+            industryList.className = 'industry-list';
+            
+            topIndustries.forEach(industry => {
+                const industryItem = document.createElement('div');
+                industryItem.className = 'industry-item';
+                industryItem.innerHTML = `
+                    <div class="industry-name">${industry.name} (匹配度: ${industry.score}%)</div>
+                    <div class="industry-description">${industry.data.description}</div>
+                `;
+                industryList.appendChild(industryItem);
+            });
+            
+            industryContainer.appendChild(industryList);
+        }
+
+        // 隐藏移动设备浏览器地址栏
+        function hideAddressBar() {
+            // 检查是否为移动设备
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                // 确保页面有足够的高度
+                document.body.style.minHeight = '105vh';
+                
+                // 延迟执行滚动，确保DOM已完全加载
+                setTimeout(() => {
+                    // 滚动1像素以触发地址栏隐藏
+                    window.scrollTo(0, 1);
+                    
+                    // 恢复正常的最小高度
+                    setTimeout(() => {
+                        document.body.style.minHeight = '100vh';
+                    }, 100);
+                }, 100);
+            }
+        }
+
+        // 页面加载时隐藏地址栏
+        window.addEventListener('load', hideAddressBar);
+        
+        // 生成性格简介
+        function generatePersonalityIntro() {
+            const introContainer = document.getElementById('personality-intro');
+            introContainer.innerHTML = '';
+            
+            // 分析维度分数，生成性格描述
+            const highestScoreIndex = dimensionScores.indexOf(Math.max(...dimensionScores));
+            const lowestScoreIndex = dimensionScores.indexOf(Math.min(...dimensionScores));
+            
+            // 根据最高分数维度生成主要性格描述
+            let mainTrait = '';
+            let personalityDesc = '';
+            
+            switch (highestScoreIndex) {
+                case 0: // 责任感
+                    mainTrait = '责任感强';
+                    personalityDesc = '你是一个非常有责任感的人，对待任务认真负责，总是尽力完成自己的职责。你注重承诺，可靠稳重，是团队中值得信赖的成员。在工作中，你会认真对待每一个细节，确保任务高质量完成。';
+                    break;
+                case 1: // 创新性
+                    mainTrait = '富有创新性';
+                    personalityDesc = '你是一个富有创造力和创新思维的人，总是能提出新颖的想法和解决方案。你喜欢挑战传统，寻找新的方法来解决问题。在工作中，你会带来新的视角和创意，推动团队不断前进。';
+                    break;
+                case 2: // 细致性
+                    mainTrait = '细致认真';
+                    personalityDesc = '你是一个细致认真的人，注重细节，做事严谨。你善于发现问题，处理事情有条理，追求完美。在工作中，你会仔细检查每一个环节，确保工作质量，避免错误。';
+                    break;
+                case 3: // 社交性
+                    mainTrait = '善于社交';
+                    personalityDesc = '你是一个善于社交的人，性格开朗，善于与人沟通和合作。你喜欢与他人互动，建立良好的人际关系。在工作中，你会积极与同事合作，善于协调团队关系，营造良好的工作氛围。';
+                    break;
+                case 4: // 分析性
+                    mainTrait = '分析能力强';
+                    personalityDesc = '你是一个分析能力强的人，思维清晰，逻辑性强。你善于分析问题，找出问题的根源，制定合理的解决方案。在工作中，你会通过数据分析和逻辑推理，为团队提供有价值的建议。';
+                    break;
+                case 5: // 进取心
+                    mainTrait = '富有进取心';
+                    personalityDesc = '你是一个富有进取心的人，有强烈的目标感和动力。你不断追求进步，勇于挑战自我，努力实现自己的目标。在工作中，你会积极主动地承担责任，不断提升自己的能力，追求卓越。';
+                    break;
+            }
+            
+            // 生成性格简介HTML
+            const introHTML = `
+                <div class="intro-title">你的性格特质</div>
+                <div class="intro-text">
+                    <p><strong>主要特质：${mainTrait}</strong></p>
+                    <p>${personalityDesc}</p>
+                    <p><strong>优势：</strong>你的${dimensions[highestScoreIndex]}得分很高，这是你在职业发展中的重要优势。</p>
+                    <p><strong>发展建议：</strong>你可以关注${dimensions[lowestScoreIndex]}维度的发展，通过适当的训练和实践来提升这方面的能力。</p>
+                </div>
+            `;
+            
+            introContainer.innerHTML = introHTML;
+        }
+
+        // 生成条形图
+        function generateBarChart() {
+            const chartContainer = document.getElementById('bar-chart');
+            chartContainer.innerHTML = '';
+            
+            // 创建条形图容器
+            const barContainer = document.createElement('div');
+            barContainer.className = 'bar-chart-container';
+            
+            // 为每个维度创建条形
+            dimensions.forEach((dimension, index) => {
+                const score = dimensionScores[index];
+                
+                const barItem = document.createElement('div');
+                barItem.className = 'bar-container';
+                
+                // 添加标签
+                const label = document.createElement('div');
+                label.className = 'bar-label';
+                label.textContent = dimension;
+                barItem.appendChild(label);
+                
+                // 添加条形容器
+                const barWrapper = document.createElement('div');
+                barWrapper.style.width = '100%';
+                barWrapper.style.display = 'flex';
+                barWrapper.style.alignItems = 'center';
+                
+                // 添加条形
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.width = score + '%'; // 宽度根据得分设置
+                bar.style.height = '25px';
+                
+                // 添加分数
+                const value = document.createElement('div');
+                value.className = 'bar-value';
+                value.textContent = score + '%';
+                bar.appendChild(value);
+                
+                barWrapper.appendChild(bar);
+                barItem.appendChild(barWrapper);
+                barContainer.appendChild(barItem);
+            });
+            
+            chartContainer.appendChild(barContainer);
+        }
+
+        // 页面调整大小时（如旋转设备）也尝试隐藏地址栏
+        window.addEventListener('resize', hideAddressBar);
+    </script>
+</body>
+</html>
