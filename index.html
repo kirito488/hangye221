@@ -1848,22 +1848,19 @@
             const containerWidth = chartContainer.offsetWidth;
             const containerHeight = chartContainer.offsetHeight;
             
-            // 创建Canvas元素用于绘制雷达图，增大Canvas大小以容纳标签
+            // 创建Canvas元素用于绘制雷达图
             const canvas = document.createElement('canvas');
-            // 增大Canvas大小，确保有足够的空间显示标签
-            const canvasWidth = containerWidth + 80;
-            const canvasHeight = containerHeight + 80;
+            // 使用容器原始大小，避免遮挡标题
+            const canvasWidth = containerWidth;
+            const canvasHeight = containerHeight;
             canvas.width = canvasWidth;
             canvas.height = canvasHeight;
-            // 设置Canvas样式，使其在容器中居中显示
-            canvas.style.marginLeft = '-40px';
-            canvas.style.marginTop = '-40px';
             chartContainer.appendChild(canvas);
             
             const ctx = canvas.getContext('2d');
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
-            const radius = Math.min(centerX, centerY) * 0.75; // 减小半径，为标签留出更多空间
+            const radius = Math.min(centerX, centerY) * 0.65; // 进一步减小半径，确保不遮挡标题，同时为标签留出更多空间
             const angleStep = (Math.PI * 2) / dimensions.length;
             
             // 绘制背景网格（雷达图的轴线）
@@ -1922,13 +1919,13 @@
             // 绘制维度标签
             for (let i = 0; i < dimensions.length; i++) {
                 const angle = angleStep * i - Math.PI / 2;
-                // 调整标签距离，在增大的Canvas中显示
-                const labelDistance = canvasWidth < 400 ? radius + 30 : radius + 40;
+                // 调整标签距离，确保在减小的半径下标签仍然完整显示
+                const labelDistance = canvasWidth < 400 ? radius + 25 : radius + 35;
                 const labelX = centerX + labelDistance * Math.cos(angle);
                 const labelY = centerY + labelDistance * Math.sin(angle);
                 
                 // 使用合适的字体大小，确保标签完整显示
-                const fontSize = canvasWidth < 400 ? 11 : 12;
+                const fontSize = canvasWidth < 400 ? 10 : 11;
                 ctx.fillStyle = '#2c3e50';
                 ctx.font = fontSize + 'px Microsoft YaHei';
                 ctx.textAlign = 'center';
