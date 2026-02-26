@@ -1750,8 +1750,11 @@
                     // 考虑维度权重
                     const dimWeight = dimensionWeights[dimensionIndex];
                     
+                    // 添加随机波动，使分数更加自然
+                    const randomFactor = 0.9 + Math.random() * 0.2; // 0.9-1.1之间的随机值
+                    
                     // 计算最终得分
-                    const finalScore = optionStrength * typeWeight * questionImportance * dimWeight * 2;
+                    const finalScore = optionStrength * typeWeight * questionImportance * dimWeight * 2 * randomFactor;
                     
                     // 添加到对应维度
                     dimensionScores[dimensionIndex] += finalScore;
@@ -1759,10 +1762,11 @@
             }
             
             // 归一化分数（0-100）
-            const maxPossibleScore = questions.length * 2.5 * 1.2 * 1.2 * 1.1 * 2;
+            const maxPossibleScore = questions.length * 2.5 * 1.2 * 1.2 * 1.1 * 2 * 1.1;
             let normalizedScores = dimensionScores.map(score => {
-                const percentage = Math.round((score / maxPossibleScore) * 100);
-                return Math.max(15, Math.min(95, percentage));
+                const percentage = (score / maxPossibleScore) * 100;
+                // 保留一位小数，使分数更加真实
+                return Math.max(15, Math.min(95, parseFloat(percentage.toFixed(1))));
             });
             
             // 智能调整分数分布
@@ -1776,23 +1780,44 @@
                 normalizedScores = normalizedScores.map(score => {
                     const zScore = (score - avgScore) / (stdDev || 1);
                     const newZScore = zScore * 1.5;
-                    const newScore = avgScore + (newZScore * 15);
-                    return Math.max(15, Math.min(95, Math.round(newScore)));
+                    // 添加小的随机波动
+                    const randomAdjustment = (Math.random() - 0.5) * 3;
+                    const newScore = avgScore + (newZScore * 15) + randomAdjustment;
+                    return Math.max(15, Math.min(95, parseFloat(newScore.toFixed(1))));
+                });
+            } else {
+                // 即使标准差足够，也添加一些小的随机波动，使分数更加自然
+                normalizedScores = normalizedScores.map(score => {
+                    const randomAdjustment = (Math.random() - 0.5) * 2;
+                    const newScore = score + randomAdjustment;
+                    return Math.max(15, Math.min(95, parseFloat(newScore.toFixed(1))));
                 });
             }
             
-            // 确保至少有两个维度得分较高（体现用户的多重优势）
+            // 确保至少有两个维度得分较高（体现用户的多重优势），但添加随机性
             const sortedIndices = normalizedScores
                 .map((score, index) => ({ score, index }))
                 .sort((a, b) => b.score - a.score);
             
             if (sortedIndices[0].score < 75) {
-                normalizedScores[sortedIndices[0].index] = 80;
+                // 添加随机值，使最高分更加自然
+                const randomTopScore = 78 + Math.random() * 7;
+                normalizedScores[sortedIndices[0].index] = parseFloat(randomTopScore.toFixed(1));
             }
             
             if (sortedIndices[1].score < 65) {
-                normalizedScores[sortedIndices[1].index] = 70;
+                // 添加随机值，使第二高分更加自然
+                const randomSecondScore = 68 + Math.random() * 5;
+                normalizedScores[sortedIndices[1].index] = parseFloat(randomSecondScore.toFixed(1));
             }
+            
+            // 再次添加微小的随机波动，确保分数不会完全相同
+            normalizedScores = normalizedScores.map((score, index) => {
+                // 为每个分数添加不同的微小随机波动
+                const randomAdjustment = (Math.random() - 0.5) * 1.5;
+                const newScore = score + randomAdjustment;
+                return Math.max(15, Math.min(95, parseFloat(newScore.toFixed(1))));
+            });
             
             // 确保分数分布合理
             dimensionScores = normalizedScores;
@@ -1834,8 +1859,7 @@
             const containerWidth = chartContainer.offsetWidth;
             const containerHeight = chartContainer.offsetHeight;
             
-            // 这里使用简单的方式生成六边形图表
-            // 在实际应用中，可以使用专业的图表库如Chart.js
+            // 创建Canvas元素用于绘制雷达图
             const canvas = document.createElement('canvas');
             canvas.width = containerWidth;
             canvas.height = containerHeight;
@@ -1845,37 +1869,50 @@
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
             const radius = Math.min(centerX, centerY) * 0.75; // 减小半径，为标签留出更多空间
+            const angleStep = (Math.PI * 2) / dimensions.length;
             
-            // 绘制背景网格
-            ctx.beginPath();
-            for (let i = 0; i < 6; i++) {
-                const angle = (Math.PI / 3) * i;
+            // 绘制背景网格（雷达图的轴线）
+            for (let i = 0; i < dimensions.length; i++) {
+                const angle = angleStep * i - Math.PI / 2; // 调整起始角度，使图表顶部对齐
                 const x = centerX + radius * Math.cos(angle);
                 const y = centerY + radius * Math.sin(angle);
+                
+                ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
                 ctx.lineTo(x, y);
+                ctx.strokeStyle = 'rgba(52, 152, 219, 0.2)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
             }
-            ctx.closePath();
-            ctx.strokeStyle = 'rgba(52, 152, 219, 0.2)';
-            ctx.lineWidth = 1;
-            ctx.stroke();
             
-            // 绘制同心圆
+            // 绘制同心圆（雷达图的网格线）
             for (let i = 1; i <= 5; i++) {
                 const r = (radius / 5) * i;
                 ctx.beginPath();
-                ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+                for (let j = 0; j < dimensions.length; j++) {
+                    const angle = angleStep * j - Math.PI / 2;
+                    const x = centerX + r * Math.cos(angle);
+                    const y = centerY + r * Math.sin(angle);
+                    
+                    if (j === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.closePath();
                 ctx.strokeStyle = 'rgba(52, 152, 219, 0.15)';
                 ctx.lineWidth = 1;
                 ctx.stroke();
             }
             
-            // 绘制六边形外框
+            // 绘制雷达图外框
             ctx.beginPath();
-            for (let i = 0; i < 6; i++) {
-                const angle = (Math.PI / 3) * i;
+            for (let i = 0; i < dimensions.length; i++) {
+                const angle = angleStep * i - Math.PI / 2;
                 const x = centerX + radius * Math.cos(angle);
                 const y = centerY + radius * Math.sin(angle);
+                
                 if (i === 0) {
                     ctx.moveTo(x, y);
                 } else {
@@ -1887,9 +1924,9 @@
             ctx.lineWidth = 3;
             ctx.stroke();
             
-            // 绘制维度标签和分数
-            for (let i = 0; i < 6; i++) {
-                const angle = (Math.PI / 3) * i;
+            // 绘制维度标签
+            for (let i = 0; i < dimensions.length; i++) {
+                const angle = angleStep * i - Math.PI / 2;
                 // 适当调整标签距离，确保标签显示
                 const labelDistance = containerWidth < 400 ? radius + 40 : radius + 50;
                 const labelX = centerX + labelDistance * Math.cos(angle);
@@ -1902,47 +1939,17 @@
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(dimensions[i], labelX, labelY);
-                
-                // 绘制分数点
-                const score = dimensionScores[i];
-                const scoreRadius = (radius * score) / 100;
-                const scoreX = centerX + scoreRadius * Math.cos(angle);
-                const scoreY = centerY + scoreRadius * Math.sin(angle);
-                
-                // 绘制分数点外圈
-                ctx.beginPath();
-                ctx.arc(scoreX, scoreY, 12, 0, Math.PI * 2); // 增大分数点大小
-                ctx.fillStyle = 'rgba(52, 152, 219, 0.2)';
-                ctx.fill();
-                ctx.strokeStyle = '#3498db';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                
-                // 绘制分数点内圈
-                ctx.beginPath();
-                ctx.arc(scoreX, scoreY, 8, 0, Math.PI * 2);
-                ctx.fillStyle = '#3498db';
-                ctx.fill();
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                
-                // 绘制分数值
-                ctx.fillStyle = '#fff';
-                ctx.font = '12px Microsoft YaHei';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(score, scoreX, scoreY);
             }
             
-            // 绘制连接线
+            // 绘制雷达图数据区域
             ctx.beginPath();
-            for (let i = 0; i < 6; i++) {
+            for (let i = 0; i < dimensions.length; i++) {
+                const angle = angleStep * i - Math.PI / 2;
                 const score = dimensionScores[i];
                 const scoreRadius = (radius * score) / 100;
-                const angle = (Math.PI / 3) * i;
                 const x = centerX + scoreRadius * Math.cos(angle);
                 const y = centerY + scoreRadius * Math.sin(angle);
+                
                 if (i === 0) {
                     ctx.moveTo(x, y);
                 } else {
@@ -1950,6 +1957,7 @@
                 }
             }
             ctx.closePath();
+            
             // 使用渐变填充
             const gradient = ctx.createLinearGradient(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
             gradient.addColorStop(0, 'rgba(52, 152, 219, 0.3)');
@@ -1959,6 +1967,33 @@
             ctx.strokeStyle = '#3498db';
             ctx.lineWidth = 2;
             ctx.stroke();
+            
+            // 绘制数据点（不显示具体分数）
+            for (let i = 0; i < dimensions.length; i++) {
+                const angle = angleStep * i - Math.PI / 2;
+                const score = dimensionScores[i];
+                const scoreRadius = (radius * score) / 100;
+                const x = centerX + scoreRadius * Math.cos(angle);
+                const y = centerY + scoreRadius * Math.sin(angle);
+                
+                // 绘制数据点外圈
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(52, 152, 219, 0.2)';
+                ctx.fill();
+                ctx.strokeStyle = '#3498db';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 绘制数据点内圈
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, Math.PI * 2);
+                ctx.fillStyle = '#3498db';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
         }
 
         function generateIndustryRecommendations() {
@@ -2154,12 +2189,7 @@
                 bar.style.width = barWidth + '%'; // 宽度根据得分设置，最大95%
                 bar.style.height = '25px';
                 bar.style.maxWidth = '95%'; // 确保条形不会超出容器
-                
-                // 添加分数
-                const value = document.createElement('div');
-                value.className = 'bar-value';
-                value.textContent = score + '%';
-                bar.appendChild(value);
+                // 移除得分数字的显示
                 
                 barWrapper.appendChild(bar);
                 barItem.appendChild(barWrapper);
