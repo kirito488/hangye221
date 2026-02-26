@@ -1750,10 +1750,36 @@
                 }
             }
             
+            // 计算每个维度的实际最大可能得分
+            // 遍历所有问题，计算每个维度的最大可能得分
+            const maxDimensionScores = new Array(6).fill(0);
+            questions.forEach((q, i) => {
+                // 问题类型权重
+                const questionType = getQuestionType(q.text);
+                const typeWeight = questionTypeWeights[questionType] || 1.0;
+                // 问题重要性
+                const questionImportance = 0.8 + (i / questions.length) * 0.4;
+                
+                // 对于每个选项，计算可能的最大得分
+                q.dimensions.forEach((dimIndex, optIndex) => {
+                    if (dimIndex !== undefined) {
+                        // 最高选项强度
+                        const maxOptionStrength = 2.5;
+                        // 维度权重
+                        const dimWeight = dimensionWeights[dimIndex];
+                        // 计算该选项可能的最大得分
+                        const maxScoreForOption = maxOptionStrength * typeWeight * questionImportance * dimWeight * 2;
+                        // 累加该维度的最大可能得分
+                        maxDimensionScores[dimIndex] += maxScoreForOption;
+                    }
+                });
+            });
+            
             // 归一化分数（0-100）
-            const maxPossibleScore = questions.length * 2.5 * 1.2 * 1.2 * 1.1 * 2 * 1.1;
-            let normalizedScores = dimensionScores.map(score => {
-                const percentage = (score / maxPossibleScore) * 100;
+            let normalizedScores = dimensionScores.map((score, index) => {
+                // 使用该维度的实际最大可能得分进行归一化
+                const maxPossibleScoreForDimension = maxDimensionScores[index] || 1;
+                const percentage = (score / maxPossibleScoreForDimension) * 100;
                 // 保留一位小数，使分数更加真实
                 return Math.max(15, Math.min(95, parseFloat(percentage.toFixed(1))));
             });
@@ -1764,27 +1790,32 @@
                 normalizedScores.reduce((sum, score) => sum + Math.pow(score - avgScore, 2), 0) / normalizedScores.length
             );
             
-            // 如果标准差太小，增加分数差异
-            if (stdDev < 15) {
-                normalizedScores = normalizedScores.map(score => {
-                    const zScore = (score - avgScore) / (stdDev || 1);
-                    const newZScore = zScore * 1.5;
-                    const newScore = avgScore + (newZScore * 15);
-                    return Math.max(15, Math.min(95, parseFloat(newScore.toFixed(1))));
-                });
-            }
+            // 增加分数差异，使结果更加明显
+            normalizedScores = normalizedScores.map(score => {
+                const zScore = (score - avgScore) / (stdDev || 1);
+                // 增加Z-score的倍数，使分数差异更加明显
+                const newZScore = zScore * 2.0;
+                const newScore = avgScore + (newZScore * 20);
+                return Math.max(10, Math.min(95, parseFloat(newScore.toFixed(1))));
+            });
             
             // 确保至少有两个维度得分较高（体现用户的多重优势）
             const sortedIndices = normalizedScores
                 .map((score, index) => ({ score, index }))
                 .sort((a, b) => b.score - a.score);
             
-            if (sortedIndices[0].score < 75) {
-                normalizedScores[sortedIndices[0].index] = 80.0;
+            // 进一步增强最高分和第二高分的差异
+            if (sortedIndices[0].score < 80) {
+                normalizedScores[sortedIndices[0].index] = 88.0;
             }
             
-            if (sortedIndices[1].score < 65) {
-                normalizedScores[sortedIndices[1].index] = 70.0;
+            if (sortedIndices[1].score < 70) {
+                normalizedScores[sortedIndices[1].index] = 78.0;
+            }
+            
+            // 确保最低分有一定的差异
+            if (sortedIndices[5].score > 40) {
+                normalizedScores[sortedIndices[5].index] = 35.0;
             }
             
             // 确保分数分布合理
