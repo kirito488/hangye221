@@ -873,19 +873,11 @@
             </div>
             
             <div class="charts-container">
-                <!-- 六边形图表 -->
+                <!-- 雷达图 -->
                 <div class="chart-item">
                     <h3 class="chart-title">性格维度分布</h3>
                     <div class="hexagon-chart" id="hexagon-chart">
-                        <!-- 六边形图表将通过JavaScript生成 -->
-                    </div>
-                </div>
-                
-                <!-- 条形图 -->
-                <div class="chart-item">
-                    <h3 class="chart-title">各维度详细得分</h3>
-                    <div class="bar-chart" id="bar-chart">
-                        <!-- 条形图将通过JavaScript生成 -->
+                        <!-- 雷达图将通过JavaScript生成 -->
                     </div>
                 </div>
             </div>
@@ -1831,11 +1823,8 @@
             // 生成性格简介
             generatePersonalityIntro();
             
-            // 生成六边形图表
+            // 生成雷达图
             generateHexagonChart();
-            
-            // 生成条形图
-            generateBarChart();
         }
 
         function showNextResultPage() {
@@ -1927,13 +1916,13 @@
             // 绘制维度标签
             for (let i = 0; i < dimensions.length; i++) {
                 const angle = angleStep * i - Math.PI / 2;
-                // 适当调整标签距离，确保标签显示
-                const labelDistance = containerWidth < 400 ? radius + 40 : radius + 50;
+                // 增大标签距离，确保标签不会遮挡
+                const labelDistance = containerWidth < 400 ? radius + 50 : radius + 60;
                 const labelX = centerX + labelDistance * Math.cos(angle);
                 const labelY = centerY + labelDistance * Math.sin(angle);
                 
-                // 使用合适的字体大小
-                const fontSize = containerWidth < 400 ? 12 : 14;
+                // 使用更小的字体大小，确保标签完整显示
+                const fontSize = containerWidth < 400 ? 11 : 13;
                 ctx.fillStyle = '#2c3e50';
                 ctx.font = fontSize + 'px Microsoft YaHei';
                 ctx.textAlign = 'center';
