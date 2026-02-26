@@ -560,11 +560,64 @@
                 font-size: 2rem;
             }
 
+            /* 性格简介区域 */
+            .personality-intro {
+                padding: 20px;
+                margin-bottom: 30px;
+            }
+
+            .intro-title {
+                font-size: 1.2rem;
+            }
+
+            .intro-text {
+                font-size: 1rem;
+            }
+
+            /* 图表容器 */
+            .charts-container {
+                gap: 30px;
+            }
+
+            .chart-item {
+                padding: 20px;
+            }
+
+            .chart-title {
+                font-size: 1.1rem;
+                margin-bottom: 15px;
+            }
+
             .hexagon-chart {
                 width: 400px;
                 height: 400px;
             }
 
+            /* 条形图 */
+            .bar-chart {
+                height: 250px;
+            }
+
+            .bar-container {
+                height: 35px;
+                margin-bottom: 12px;
+            }
+
+            .bar-label {
+                width: 100px;
+                font-size: 0.9rem;
+                margin-right: 15px;
+            }
+
+            .bar {
+                height: 20px;
+            }
+
+            .bar-value {
+                font-size: 0.8rem;
+            }
+
+            /* 行业推荐 */
             .industry-title {
                 font-size: 1.5rem;
             }
@@ -578,6 +631,17 @@
                 line-height: 1.7;
             }
 
+            /* 免责声明 */
+            .disclaimer {
+                margin: 20px 0;
+                padding: 15px;
+            }
+
+            .disclaimer p {
+                font-size: 0.9rem;
+            }
+
+            /* 按钮 */
             .toast {
                 padding: 25px 30px;
                 font-size: 1.1rem;
@@ -601,13 +665,136 @@
                 font-size: 1.8rem;
             }
 
+            .subtitle {
+                font-size: 0.9rem;
+                margin-bottom: 30px;
+            }
+
+            .quiz-container, .result-container {
+                padding: 20px 15px;
+            }
+
+            .question-text {
+                font-size: 1.1rem;
+                margin-bottom: 25px;
+            }
+
+            .option {
+                padding: 15px 15px;
+                font-size: 0.95rem;
+                min-height: 50px;
+            }
+
+            .option-letter {
+                width: 32px;
+                height: 32px;
+                line-height: 32px;
+                margin-right: 12px;
+            }
+
             .result-title {
                 font-size: 1.8rem;
             }
 
+            /* 性格简介区域 */
+            .personality-intro {
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+
+            .intro-title {
+                font-size: 1.1rem;
+            }
+
+            .intro-text {
+                font-size: 0.9rem;
+            }
+
+            /* 图表容器 */
+            .charts-container {
+                gap: 20px;
+            }
+
+            .chart-item {
+                padding: 15px;
+            }
+
+            .chart-title {
+                font-size: 1rem;
+                margin-bottom: 10px;
+            }
+
+            /* 六边形图表 */
             .hexagon-chart {
                 width: 300px;
                 height: 300px;
+            }
+
+            /* 条形图 */
+            .bar-chart {
+                height: 200px;
+            }
+
+            .bar-container {
+                height: 30px;
+                margin-bottom: 10px;
+            }
+
+            .bar-label {
+                width: 90px;
+                font-size: 0.8rem;
+                margin-right: 10px;
+            }
+
+            .bar {
+                height: 18px;
+            }
+
+            .bar-value {
+                font-size: 0.7rem;
+                right: 5px;
+            }
+
+            /* 行业推荐 */
+            .industry-name {
+                font-size: 1.1rem;
+            }
+
+            .industry-description {
+                font-size: 0.9rem;
+            }
+
+            /* 免责声明 */
+            .disclaimer {
+                margin: 15px 0;
+                padding: 12px;
+            }
+
+            .disclaimer p {
+                font-size: 0.8rem;
+            }
+
+            /* 按钮 */
+            .nav-btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
+            .toast {
+                padding: 20px 25px;
+                font-size: 1rem;
+                width: 90%;
+                max-width: 300px;
+            }
+
+            .toast-close {
+                padding: 6px 20px;
+                font-size: 0.9rem;
+            }
+
+            .next-page-btn {
+                padding: 10px 30px;
+                font-size: 1rem;
             }
         }
     </style>
@@ -1512,15 +1699,15 @@
             const chartContainer = document.getElementById('hexagon-chart');
             chartContainer.innerHTML = '';
             
-            // 增大图表容器大小，确保有足够空间显示所有标签
-            chartContainer.style.width = '700px';
-            chartContainer.style.height = '700px';
+            // 获取图表容器的实际宽度和高度（由CSS响应式样式控制）
+            const containerWidth = chartContainer.offsetWidth;
+            const containerHeight = chartContainer.offsetHeight;
             
             // 这里使用简单的方式生成六边形图表
             // 在实际应用中，可以使用专业的图表库如Chart.js
             const canvas = document.createElement('canvas');
-            canvas.width = 700;
-            canvas.height = 700;
+            canvas.width = containerWidth;
+            canvas.height = containerHeight;
             chartContainer.appendChild(canvas);
             
             const ctx = canvas.getContext('2d');
